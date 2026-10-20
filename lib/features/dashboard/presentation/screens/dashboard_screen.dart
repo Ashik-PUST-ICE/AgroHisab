@@ -14,6 +14,9 @@ import '../../../storage/presentation/screens/storage_settings_screen.dart';
 import '../../../reports/presentation/screens/reports_screen.dart';
 import '../../../suppliers/presentation/screens/supplier_list_screen.dart';
 import '../../../diary/presentation/screens/diary_screen.dart';
+import '../../../remittances/presentation/screens/remittance_list_screen.dart';
+import '../../../transporters/presentation/screens/transporter_list_screen.dart';
+import '../../../documents/presentation/screens/document_vault_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -78,6 +81,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
             icon: const Icon(Icons.people_alt, color: AppColors.primary),
             tooltip: 'কৃষক ও বেপারী',
             onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SupplierListScreen())),
+          ),
+          IconButton(
+            icon: const Icon(Icons.price_check, color: AppColors.primary),
+            tooltip: 'আড়ত জমা',
+            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const RemittanceListScreen())),
+          ),
+          IconButton(
+            icon: const Icon(Icons.local_shipping, color: AppColors.primary),
+            tooltip: 'ট্রাক ও পরিবহন',
+            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const TransporterListScreen())),
           ),
           IconButton(
             icon: const Badge(
@@ -312,6 +325,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
           } else if (index == 2) {
             Navigator.push(context, MaterialPageRoute(builder: (_) => const StockSummaryScreen()));
           } else if (index == 3) {
+            Navigator.push(context, MaterialPageRoute(builder: (_) => const DocumentVaultScreen()));
+          } else if (index == 4) {
             Navigator.push(context, MaterialPageRoute(builder: (_) => const DiaryScreen()));
           }
         },

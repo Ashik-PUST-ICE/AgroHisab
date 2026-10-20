@@ -15,6 +15,9 @@ import 'features/expenses/presentation/providers/expense_provider.dart';
 import 'features/reports/presentation/providers/reports_provider.dart';
 import 'features/suppliers/presentation/providers/supplier_provider.dart';
 import 'features/diary/presentation/providers/diary_provider.dart';
+import 'features/remittances/presentation/providers/remittance_provider.dart';
+import 'features/transporters/presentation/providers/transporter_provider.dart';
+import 'features/documents/presentation/providers/document_provider.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -41,6 +44,9 @@ class AgroHisabApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => ReportsProvider()),
         ChangeNotifierProvider(create: (_) => SupplierProvider()),
         ChangeNotifierProvider(create: (_) => DiaryProvider()),
+        ChangeNotifierProvider(create: (_) => RemittanceProvider()),
+        ChangeNotifierProvider(create: (_) => TransporterProvider()),
+        ChangeNotifierProvider(create: (_) => DocumentProvider()),
       ],
       child: MaterialApp(
         title: 'AgroHisab - কৃষি বাণিজ্য সাথী',
