@@ -5,6 +5,11 @@ import 'features/auth/presentation/providers/auth_provider.dart';
 import 'features/auth/presentation/screens/splash_screen.dart';
 import 'features/dashboard/presentation/providers/dashboard_provider.dart';
 import 'features/procurement/presentation/providers/procurement_provider.dart';
+import 'features/challan/presentation/providers/challan_provider.dart';
+import 'features/aratdar/presentation/providers/aratdar_provider.dart';
+import 'features/settlement/presentation/providers/settlement_provider.dart';
+import 'features/stock/presentation/providers/stock_provider.dart';
+import 'features/accounts/presentation/providers/account_provider.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -21,9 +26,14 @@ class AgroHisabApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => AuthProvider()),
         ChangeNotifierProvider(create: (_) => DashboardProvider()),
         ChangeNotifierProvider(create: (_) => ProcurementProvider()),
+        ChangeNotifierProvider(create: (_) => ChallanProvider()),
+        ChangeNotifierProvider(create: (_) => AratdarProvider()),
+        ChangeNotifierProvider(create: (_) => SettlementProvider()),
+        ChangeNotifierProvider(create: (_) => StockProvider()),
+        ChangeNotifierProvider(create: (_) => AccountProvider()),
       ],
       child: MaterialApp(
-        title: 'কৃষি বাণিজ্য সাথী',
+        title: 'AgroHisab - কৃষি বাণিজ্য সাথী',
         debugShowCheckedModeBanner: false,
         theme: AppTheme.lightTheme,
         home: const SplashScreen(),

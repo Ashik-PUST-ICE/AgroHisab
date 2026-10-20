@@ -6,6 +6,8 @@ import '../../../auth/presentation/screens/login_screen.dart';
 import '../../presentation/providers/dashboard_provider.dart';
 import '../../../procurement/presentation/screens/purchase_list_screen.dart';
 import '../../../procurement/presentation/screens/quick_calculator_screen.dart';
+import '../../../challan/presentation/screens/challan_list_screen.dart';
+import '../../../aratdar/presentation/screens/aratdar_list_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -197,7 +199,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     subtitle: '(Challan)',
                     icon: Icons.local_shipping_rounded,
                     color: AppColors.cardGreen,
-                    onTap: () {},
+                    onTap: () {
+                      Navigator.push(context, MaterialPageRoute(builder: (_) => const ChallanListScreen()));
+                    },
                   ),
                   _buildActionCard(
                     title: 'ক্যালকুলেটর',
@@ -216,7 +220,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     subtitle: '(Aratdar)',
                     icon: Icons.storefront_rounded,
                     color: AppColors.cardBrown,
-                    onTap: () {},
+                    onTap: () {
+                      Navigator.push(context, MaterialPageRoute(builder: (_) => const AratdarListScreen()));
+                    },
                   ),
                   _buildActionCard(
                     title: 'হিসাব',
