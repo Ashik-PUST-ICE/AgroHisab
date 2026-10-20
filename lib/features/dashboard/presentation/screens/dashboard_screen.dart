@@ -8,6 +8,11 @@ import '../../../procurement/presentation/screens/purchase_list_screen.dart';
 import '../../../procurement/presentation/screens/quick_calculator_screen.dart';
 import '../../../challan/presentation/screens/challan_list_screen.dart';
 import '../../../aratdar/presentation/screens/aratdar_list_screen.dart';
+import '../../../stock/presentation/screens/stock_summary_screen.dart';
+import '../../../accounts/presentation/screens/accounts_screen.dart';
+import '../../../storage/presentation/screens/storage_settings_screen.dart';
+import '../../../expenses/presentation/screens/expense_list_screen.dart';
+import '../../../reports/presentation/screens/reports_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -63,6 +68,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ],
         ),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.cloud_sync, color: Colors.white),
+            tooltip: 'স্টোরেজ সেটিংস',
+            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const StorageSettingsScreen())),
+          ),
           IconButton(
             icon: const Badge(
               label: Text('৩'),
@@ -229,14 +239,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     subtitle: '(Accounts)',
                     icon: Icons.account_balance_rounded,
                     color: AppColors.cardCyan,
-                    onTap: () {},
+                    onTap: () {
+                      Navigator.push(context, MaterialPageRoute(builder: (_) => const AccountsScreen()));
+                    },
                   ),
                   _buildActionCard(
                     title: 'রিপোর্ট',
                     subtitle: '(Reports)',
                     icon: Icons.analytics_rounded,
                     color: AppColors.cardIndigo,
-                    onTap: () {},
+                    onTap: () {
+                      Navigator.push(context, MaterialPageRoute(builder: (_) => const ReportsScreen()));
+                    },
                   ),
                 ],
               ),
@@ -289,6 +303,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
           setState(() => _currentIndex = index);
           if (index == 1) {
             Navigator.push(context, MaterialPageRoute(builder: (_) => const PurchaseListScreen()));
+          } else if (index == 2) {
+            Navigator.push(context, MaterialPageRoute(builder: (_) => const StockSummaryScreen()));
+          } else if (index == 3) {
+            Navigator.push(context, MaterialPageRoute(builder: (_) => const ExpenseListScreen()));
           }
         },
         type: BottomNavigationBarType.fixed,

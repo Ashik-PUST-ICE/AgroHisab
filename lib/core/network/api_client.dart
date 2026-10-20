@@ -23,14 +23,11 @@ class ApiClient {
   String _baseUrl = ApiEndpoints.defaultBaseUrl;
 
   ApiClient() {
-    // If running on desktop/web localhost is standard
-    // If Android emulator, 10.0.2.2 maps to host localhost
     try {
       if (!Platform.isAndroid && !Platform.isIOS) {
         _baseUrl = 'http://localhost:8000/api/v1';
       }
     } catch (_) {
-      // web fallback
       _baseUrl = 'http://localhost:8000/api/v1';
     }
   }
@@ -102,6 +99,33 @@ class ApiClient {
       return _parseResponse(response);
     } catch (e) {
       return ApiResponse(success: false, message: 'সার্ভারে সংযোগ দেওয়া সম্ভব হয়নি: ${e.toString()}');
+    }
+  }
+
+  Future<ApiResponse<dynamic>> uploadMultipart(
+    String endpoint, {
+    required File file,
+    String fileField = 'file',
+    Map<String, String>? fields,
+  }) async {
+    try {
+      final uri = Uri.parse('$_baseUrl$endpoint');
+      final request = http.MultipartRequest('POST', uri);
+      final token = await _storage.getToken();
+      request.headers['Accept'] = 'application/json';
+      if (token != null && token.isNotEmpty) {
+        request.headers['Authorization'] = 'Bearer $token';
+      }
+      if (fields != null) {
+        request.fields.addAll(fields);
+      }
+      request.files.add(await http.MultipartFile.fromPath(fileField, file.path));
+
+      final streamedResponse = await request.send();
+      final response = await http.Response.fromStream(streamedResponse);
+      return _parseResponse(response);
+    } catch (e) {
+      return ApiResponse(success: false, message: 'ফাইল আপলোড ব্যর্থ হয়েছে: ${e.toString()}');
     }
   }
 
