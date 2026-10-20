@@ -11,8 +11,9 @@ import '../../../aratdar/presentation/screens/aratdar_list_screen.dart';
 import '../../../stock/presentation/screens/stock_summary_screen.dart';
 import '../../../accounts/presentation/screens/accounts_screen.dart';
 import '../../../storage/presentation/screens/storage_settings_screen.dart';
-import '../../../expenses/presentation/screens/expense_list_screen.dart';
 import '../../../reports/presentation/screens/reports_screen.dart';
+import '../../../suppliers/presentation/screens/supplier_list_screen.dart';
+import '../../../diary/presentation/screens/diary_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -69,9 +70,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.cloud_sync, color: Colors.white),
+            icon: const Icon(Icons.cloud_sync, color: AppColors.primary),
             tooltip: 'স্টোরেজ সেটিংস',
             onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const StorageSettingsScreen())),
+          ),
+          IconButton(
+            icon: const Icon(Icons.people_alt, color: AppColors.primary),
+            tooltip: 'কৃষক ও বেপারী',
+            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SupplierListScreen())),
           ),
           IconButton(
             icon: const Badge(
@@ -306,7 +312,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           } else if (index == 2) {
             Navigator.push(context, MaterialPageRoute(builder: (_) => const StockSummaryScreen()));
           } else if (index == 3) {
-            Navigator.push(context, MaterialPageRoute(builder: (_) => const ExpenseListScreen()));
+            Navigator.push(context, MaterialPageRoute(builder: (_) => const DiaryScreen()));
           }
         },
         type: BottomNavigationBarType.fixed,
