@@ -17,6 +17,10 @@ import '../../../diary/presentation/screens/diary_screen.dart';
 import '../../../remittances/presentation/screens/remittance_list_screen.dart';
 import '../../../transporters/presentation/screens/transporter_list_screen.dart';
 import '../../../documents/presentation/screens/document_vault_screen.dart';
+import '../../../crops/presentation/screens/crop_list_screen.dart';
+import '../../../markets/presentation/screens/market_list_screen.dart';
+import '../../../units/presentation/screens/unit_conversion_screen.dart';
+import '../../../notifications/presentation/screens/notification_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -97,7 +101,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               label: Text('৩'),
               child: Icon(Icons.notifications_outlined, color: AppColors.textPrimary),
             ),
-            onPressed: () {},
+            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const NotificationScreen())),
           ),
           IconButton(
             icon: const Icon(Icons.logout_rounded, color: AppColors.error),
@@ -269,6 +273,33 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     color: AppColors.cardIndigo,
                     onTap: () {
                       Navigator.push(context, MaterialPageRoute(builder: (_) => const ReportsScreen()));
+                    },
+                  ),
+                  _buildActionCard(
+                    title: 'ফসল',
+                    subtitle: '(Crops)',
+                    icon: Icons.grass_rounded,
+                    color: AppColors.cardGreen,
+                    onTap: () {
+                      Navigator.push(context, MaterialPageRoute(builder: (_) => const CropListScreen()));
+                    },
+                  ),
+                  _buildActionCard(
+                    title: 'মোকাম',
+                    subtitle: '(Markets)',
+                    icon: Icons.store_rounded,
+                    color: AppColors.cardOrange,
+                    onTap: () {
+                      Navigator.push(context, MaterialPageRoute(builder: (_) => const MarketListScreen()));
+                    },
+                  ),
+                  _buildActionCard(
+                    title: 'ওজন একক',
+                    subtitle: '(Units)',
+                    icon: Icons.scale_rounded,
+                    color: AppColors.cardCyan,
+                    onTap: () {
+                      Navigator.push(context, MaterialPageRoute(builder: (_) => const UnitConversionScreen()));
                     },
                   ),
                 ],
