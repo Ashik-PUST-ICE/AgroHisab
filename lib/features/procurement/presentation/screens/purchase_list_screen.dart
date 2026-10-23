@@ -3,6 +3,8 @@ import 'package:provider/provider.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../providers/procurement_provider.dart';
 import 'quick_calculator_screen.dart';
+import '../../../suppliers/presentation/screens/supplier_list_screen.dart';
+import 'purchase_details_screen.dart';
 
 class PurchaseListScreen extends StatefulWidget {
   const PurchaseListScreen({super.key});
@@ -48,7 +50,7 @@ class _PurchaseListScreenState extends State<PurchaseListScreen> with SingleTick
           tabs: const [
             Tab(text: 'নতুন ক্রয়'),
             Tab(text: 'ক্রয় তালিকা'),
-            Tab(text: 'সরবরাহকারী'),
+            Tab(text: 'কৃষক'),
           ],
         ),
       ),
@@ -71,7 +73,7 @@ class _PurchaseListScreenState extends State<PurchaseListScreen> with SingleTick
                     controller: _searchCtrl,
                     onSubmitted: (val) => provider.fetchPurchases(search: val),
                     decoration: InputDecoration(
-                      hintText: 'পণ্য/সরবরাহকারী/বাজার খুঁজুন',
+                      hintText: 'পণ্য/কৃষক/বাজার খুঁজুন',
                       prefixIcon: const Icon(Icons.search, color: AppColors.textSecondary),
                       suffixIcon: IconButton(
                         icon: const Icon(Icons.clear, size: 18),
@@ -122,8 +124,8 @@ class _PurchaseListScreenState extends State<PurchaseListScreen> with SingleTick
             ),
           ),
 
-          // Tab 3: Suppliers list placeholder
-          const Center(child: Text('সরবরাহকারী / কৃষক তালিকা')),
+          // Tab 3: Suppliers / farmers
+          const SupplierListScreen(),
         ],
       ),
       floatingActionButton: FloatingActionButton(
@@ -148,7 +150,13 @@ class _PurchaseListScreenState extends State<PurchaseListScreen> with SingleTick
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: AppColors.border),
       ),
-      child: Row(
+      child: InkWell(
+        borderRadius: BorderRadius.circular(12),
+        onTap: () => Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => PurchaseDetailsScreen(purchase: purchase)),
+        ),
+        child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Product Avatar
@@ -211,6 +219,7 @@ class _PurchaseListScreenState extends State<PurchaseListScreen> with SingleTick
             ),
           ),
         ],
+        ),
       ),
     );
   }

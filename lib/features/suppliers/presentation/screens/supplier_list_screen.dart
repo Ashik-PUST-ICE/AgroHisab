@@ -17,7 +17,7 @@ class _SupplierListScreenState extends State<SupplierListScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      Provider.of<SupplierProvider>(context, listen: false).fetchSuppliers();
+      Provider.of<SupplierProvider>(context, listen: false).ensureDefaultFarmer();
     });
   }
 
@@ -32,7 +32,7 @@ class _SupplierListScreenState extends State<SupplierListScreen> {
       context: context,
       builder: (ctx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text('নতুন কৃষক / বেপারী যুক্ত করুন', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+        title: const Text('নতুন কৃষক যুক্ত করুন', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
         content: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -80,7 +80,7 @@ class _SupplierListScreenState extends State<SupplierListScreen> {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: const Text('কৃষক ও বেপারী খাতা', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+        title: const Text('কৃষকের খাতা', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
       ),

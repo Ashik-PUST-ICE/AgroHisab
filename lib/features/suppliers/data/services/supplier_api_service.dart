@@ -14,9 +14,8 @@ class SupplierApiService {
     return [];
   }
 
-  Future<bool> createSupplier(Map<String, dynamic> body) async {
-    final res = await _client.post('/suppliers', body: body);
-    return res.success;
+  Future<ApiResponse<dynamic>> createSupplier(Map<String, dynamic> body) async {
+    return _client.post('/suppliers', body: body);
   }
 
   Future<SupplierLedgerModel?> getSupplierLedger(int id) async {

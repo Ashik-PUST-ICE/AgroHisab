@@ -1,6 +1,7 @@
 class PurchaseModel {
   final int id;
   final String purchaseNumber;
+  final int? supplierId;
   final String? supplierName;
   final String? productName;
   final double totalAmount;
@@ -15,6 +16,7 @@ class PurchaseModel {
   PurchaseModel({
     required this.id,
     required this.purchaseNumber,
+    this.supplierId,
     this.supplierName,
     this.productName,
     required this.totalAmount,
@@ -46,7 +48,8 @@ class PurchaseModel {
     return PurchaseModel(
       id: json['id'] is int ? json['id'] : int.tryParse(json['id']?.toString() ?? '0') ?? 0,
       purchaseNumber: json['purchase_number'] ?? 'PUR-${json['id']}',
-      supplierName: supplier['name'] ?? 'কৃষক',
+      supplierId: json['supplier_id'] is int ? json['supplier_id'] : int.tryParse(json['supplier_id']?.toString() ?? ''),
+      supplierName: json['supplier_name'] ?? supplier['name'] ?? 'কৃষক নির্বাচন করা হয়নি',
       productName: prodName ?? 'কৃষিপণ্য',
       totalAmount: (json['total_amount'] as num?)?.toDouble() ?? 0.0,
       paidAmount: (json['paid_amount'] as num?)?.toDouble() ?? 0.0,

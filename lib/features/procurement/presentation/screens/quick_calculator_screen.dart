@@ -6,6 +6,7 @@ import '../../../../core/widgets/custom_text_field.dart';
 import '../providers/procurement_provider.dart';
 import '../../../crops/presentation/providers/crop_provider.dart';
 import '../../../suppliers/presentation/providers/supplier_provider.dart';
+import '../../../suppliers/presentation/screens/create_supplier_screen.dart';
 
 class QuickCalculatorScreen extends StatefulWidget {
   const QuickCalculatorScreen({super.key});
@@ -29,8 +30,15 @@ class _QuickCalculatorScreenState extends State<QuickCalculatorScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<CropProvider>().fetchCrops();
       context.read<CropProvider>().fetchCategories();
-      context.read<SupplierProvider>().fetchSuppliers();
+      _prepareDefaultFarmer();
     });
+  }
+
+  Future<void> _prepareDefaultFarmer() async {
+    final farmer = await context.read<SupplierProvider>().ensureDefaultFarmer();
+    if (mounted && farmer != null && _supplierId == null) {
+      setState(() => _supplierId = farmer.id);
+    }
   }
 
   @override
@@ -57,7 +65,7 @@ class _QuickCalculatorScreenState extends State<QuickCalculatorScreen> {
       return;
     }
     if (savePurchase && (_productId == null || _supplierId == null)) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Select product and supplier before saving the purchase.')));
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Purchase save করার আগে পণ্য ও কৃষক নির্বাচন করুন।')));
       return;
     }
 
@@ -119,7 +127,7 @@ class _QuickCalculatorScreenState extends State<QuickCalculatorScreen> {
                     children: [
                       Expanded(child: _selectorCard('পণ্য', _selectedName(crops, _productId) ?? 'পণ্য নির্বাচন করুন', Icons.grass_rounded, () => _pickProduct(crops))),
                       const SizedBox(width: 10),
-                      Expanded(child: _selectorCard('সরবরাহকারী', _selectedName(suppliers, _supplierId) ?? 'সরবরাহকারী নির্বাচন করুন', Icons.person_outline_rounded, () => _pickSupplier(suppliers))),
+                      Expanded(child: _selectorCard('কৃষক', _selectedName(suppliers, _supplierId) ?? 'কৃষক নির্বাচন করুন', Icons.person_outline_rounded, () => _pickSupplier(suppliers))),
                     ],
                   ),
                   const SizedBox(height: 14),
@@ -274,11 +282,27 @@ class _QuickCalculatorScreenState extends State<QuickCalculatorScreen> {
   );
 
   Future<void> _pickSupplier(List<dynamic> suppliers) => _pickItem(
-    title: 'সরবরাহকারী / কৃষক নির্বাচন করুন',
+      title: 'কৃষক নির্বাচন করুন',
     items: suppliers,
     label: (item) => item.name.toString(),
     id: (item) => item.id as int,
     onSelected: (id) => setState(() => _supplierId = id),
+    onAddNew: () async {
+      final createdName = await Navigator.push<String>(
+        context,
+        MaterialPageRoute(builder: (_) => const CreateSupplierScreen()),
+      );
+      if (createdName != null && mounted) {
+        final supplierProvider = context.read<SupplierProvider>();
+        await supplierProvider.fetchSuppliers();
+        for (final supplier in supplierProvider.suppliers) {
+          if (supplier.name.trim() == createdName.trim()) {
+            setState(() => _supplierId = supplier.id);
+            break;
+          }
+        }
+      }
+    },
   );
 
   Future<void> _pickItem({
@@ -287,6 +311,7 @@ class _QuickCalculatorScreenState extends State<QuickCalculatorScreen> {
     required String Function(dynamic) label,
     required int Function(dynamic) id,
     required ValueChanged<int> onSelected,
+    VoidCallback? onAddNew,
   }) async {
     String query = '';
     await showModalBottomSheet<void>(
@@ -311,6 +336,26 @@ class _QuickCalculatorScreenState extends State<QuickCalculatorScreen> {
                 decoration: InputDecoration(hintText: 'খুঁজুন', prefixIcon: const Icon(Icons.search), filled: true, fillColor: AppColors.background, border: OutlineInputBorder(borderRadius: BorderRadius.circular(11), borderSide: BorderSide.none)),
               ),
               const SizedBox(height: 8),
+              if (onAddNew != null) ...[
+                InkWell(
+                  onTap: () {
+                    Navigator.pop(sheetContext);
+                    onAddNew();
+                  },
+                  borderRadius: BorderRadius.circular(11),
+                  child: Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                    decoration: BoxDecoration(color: AppColors.accentLight, borderRadius: BorderRadius.circular(11)),
+                    child: const Row(children: [
+                      Icon(Icons.add_circle_outline_rounded, color: AppColors.primary),
+                      SizedBox(width: 9),
+                      Text('নতুন কৃষকের নাম যোগ করুন', style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold)),
+                    ]),
+                  ),
+                ),
+                const SizedBox(height: 8),
+              ],
               Expanded(
                 child: filtered.isEmpty
                     ? const Center(child: Text('কোনো তথ্য পাওয়া যায়নি'))
