@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/widgets/custom_text_field.dart';
 import '../providers/crop_provider.dart';
+import 'create_product_screen.dart';
 
 class CropListScreen extends StatefulWidget {
   const CropListScreen({super.key});
@@ -42,6 +43,13 @@ class _CropListScreenState extends State<CropListScreen> {
               CustomTextField(label: 'জাত / ভ্যারাইটি', hint: 'যেমন: ডায়মন্ড, লাল পাকড়ি', controller: varietyCtrl),
               const SizedBox(height: 12),
               CustomTextField(label: 'বিবরণ', hint: 'যেমন: শিবগঞ্জের স্থানীয় ভালো জাত', controller: descCtrl),
+              const SizedBox(height: 12),
+              Consumer<CropProvider>(builder: (_, cropProvider, __) => DropdownButtonFormField<int>(
+                value: categoryId,
+                decoration: const InputDecoration(labelText: 'Product category', border: OutlineInputBorder()),
+                items: cropProvider.categories.map((category) => DropdownMenuItem(value: category.id, child: Text(category.name))).toList(),
+                onChanged: (value) => categoryId = value,
+              )),
             ],
           ),
         ),
@@ -88,7 +96,7 @@ class _CropListScreenState extends State<CropListScreen> {
         foregroundColor: Colors.white,
         icon: const Icon(Icons.add),
         label: const Text('নতুন ফসল'),
-        onPressed: _showAddCropDialog,
+        onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CreateProductScreen())),
       ),
       body: Consumer<CropProvider>(
         builder: (ctx, provider, _) {
@@ -135,3 +143,5 @@ class _CropListScreenState extends State<CropListScreen> {
     );
   }
 }
+
+

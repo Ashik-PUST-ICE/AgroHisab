@@ -23,8 +23,7 @@ class CropApiService {
     return [];
   }
 
-  Future<bool> createCrop(Map<String, dynamic> body) async {
-    final res = await _client.post('/products', body: body);
-    return res.success;
+  Future<ApiResponse<dynamic>> createCrop(Map<String, dynamic> body) {
+    return _client.post('/products', body: body);
   }
 }

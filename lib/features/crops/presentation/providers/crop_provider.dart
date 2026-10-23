@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../core/network/api_client.dart';
 import '../../data/models/crop_model.dart';
 import '../../data/services/crop_api_service.dart';
 import '../../data/models/product_category_model.dart';
@@ -8,6 +9,8 @@ class CropProvider extends ChangeNotifier {
 
   bool _isLoading = false;
   bool get isLoading => _isLoading;
+  String? _errorMessage;
+  String? get errorMessage => _errorMessage;
 
   List<CropModel> _crops = [];
   List<CropModel> get crops => _crops;
@@ -38,19 +41,31 @@ class CropProvider extends ChangeNotifier {
 
   Future<bool> addCrop(Map<String, dynamic> body) async {
     _isLoading = true;
+    _errorMessage = null;
     notifyListeners();
     try {
-      final ok = await _apiService.createCrop(body);
-      if (ok) {
+      final response = await _apiService.createCrop(body);
+      if (response.success) {
         await fetchCrops();
       }
-      return ok;
+      else _errorMessage = _formatError(response);
+      return response.success;
     } catch (e) {
       debugPrint('Error adding crop: $e');
+      _errorMessage = e.toString();
       return false;
     } finally {
       _isLoading = false;
       notifyListeners();
     }
+  }
+
+  String _formatError(ApiResponse<dynamic> response) {
+    if (response.errors != null && response.errors!.isNotEmpty) {
+      final first = response.errors!.values.first;
+      if (first is List && first.isNotEmpty) return first.first.toString();
+      return first.toString();
+    }
+    return response.message;
   }
 }

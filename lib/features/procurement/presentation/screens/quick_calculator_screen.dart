@@ -117,6 +117,15 @@ class _QuickCalculatorScreenState extends State<QuickCalculatorScreen> {
 
                   Row(
                     children: [
+                      Expanded(child: _selectorCard('পণ্য', _selectedName(crops, _productId) ?? 'পণ্য নির্বাচন করুন', Icons.grass_rounded, () => _pickProduct(crops))),
+                      const SizedBox(width: 10),
+                      Expanded(child: _selectorCard('সরবরাহকারী', _selectedName(suppliers, _supplierId) ?? 'সরবরাহকারী নির্বাচন করুন', Icons.person_outline_rounded, () => _pickSupplier(suppliers))),
+                    ],
+                  ),
+                  const SizedBox(height: 14),
+
+                  Row(
+                    children: [
                       Expanded(
                         child: CustomTextField(
                           label: 'কাঁচা ওজন (কেজি)',
@@ -194,20 +203,6 @@ class _QuickCalculatorScreenState extends State<QuickCalculatorScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                  DropdownButtonFormField<int>(
-                    value: _productId,
-                    decoration: const InputDecoration(labelText: 'Product', prefixIcon: Icon(Icons.grass_rounded), border: OutlineInputBorder()),
-                    items: crops.map((crop) => DropdownMenuItem(value: crop.id, child: Text(crop.name))).toList(),
-                    onChanged: (value) => setState(() => _productId = value),
-                  ),
-                  const SizedBox(height: 12),
-                  DropdownButtonFormField<int>(
-                    value: _supplierId,
-                    decoration: const InputDecoration(labelText: 'Supplier / Farmer', prefixIcon: Icon(Icons.person_outline), border: OutlineInputBorder()),
-                    items: suppliers.map((supplier) => DropdownMenuItem(value: supplier.id, child: Text(supplier.name))).toList(),
-                    onChanged: (value) => setState(() => _supplierId = value),
-                  ),
-                  const SizedBox(height: 14),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: const [
@@ -243,6 +238,106 @@ class _QuickCalculatorScreenState extends State<QuickCalculatorScreen> {
     );
   }
 
+  Widget _selectorCard(String label, String value, IconData icon, VoidCallback onTap) => InkWell(
+    onTap: onTap,
+    borderRadius: BorderRadius.circular(10),
+    child: Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 11),
+      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(10), border: Border.all(color: AppColors.border)),
+      child: Row(children: [
+        Icon(icon, color: AppColors.primary, size: 19),
+        const SizedBox(width: 7),
+        Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Text(label, style: const TextStyle(fontSize: 10, color: AppColors.textSecondary)),
+          const SizedBox(height: 3),
+          Text(value, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+        ])),
+        const Icon(Icons.expand_more_rounded, color: AppColors.textSecondary, size: 19),
+      ]),
+    ),
+  );
+
+  String? _selectedName(List<dynamic> items, int? id) {
+    if (id == null) return null;
+    for (final item in items) {
+      if (item.id == id) return item.name.toString();
+    }
+    return null;
+  }
+
+  Future<void> _pickProduct(List<dynamic> products) => _pickItem(
+    title: 'পণ্য নির্বাচন করুন',
+    items: products,
+    label: (item) => item.name.toString(),
+    id: (item) => item.id as int,
+    onSelected: (id) => setState(() => _productId = id),
+  );
+
+  Future<void> _pickSupplier(List<dynamic> suppliers) => _pickItem(
+    title: 'সরবরাহকারী / কৃষক নির্বাচন করুন',
+    items: suppliers,
+    label: (item) => item.name.toString(),
+    id: (item) => item.id as int,
+    onSelected: (id) => setState(() => _supplierId = id),
+  );
+
+  Future<void> _pickItem({
+    required String title,
+    required List<dynamic> items,
+    required String Function(dynamic) label,
+    required int Function(dynamic) id,
+    required ValueChanged<int> onSelected,
+  }) async {
+    String query = '';
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (sheetContext) => StatefulBuilder(
+        builder: (context, setSheetState) {
+          final filtered = items.where((item) => label(item).toLowerCase().contains(query.toLowerCase())).toList();
+          return Container(
+            height: MediaQuery.of(context).size.height * .72,
+            padding: const EdgeInsets.fromLTRB(16, 10, 16, 16),
+            decoration: const BoxDecoration(color: Colors.white, borderRadius: BorderRadius.vertical(top: Radius.circular(22))),
+            child: Column(children: [
+              Container(width: 38, height: 4, decoration: BoxDecoration(color: Colors.black12, borderRadius: BorderRadius.circular(4))),
+              const SizedBox(height: 14),
+              Align(alignment: Alignment.centerLeft, child: Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold))),
+              const SizedBox(height: 12),
+              TextField(
+                autofocus: true,
+                onChanged: (value) => setSheetState(() => query = value),
+                decoration: InputDecoration(hintText: 'খুঁজুন', prefixIcon: const Icon(Icons.search), filled: true, fillColor: AppColors.background, border: OutlineInputBorder(borderRadius: BorderRadius.circular(11), borderSide: BorderSide.none)),
+              ),
+              const SizedBox(height: 8),
+              Expanded(
+                child: filtered.isEmpty
+                    ? const Center(child: Text('কোনো তথ্য পাওয়া যায়নি'))
+                    : ListView.separated(
+                        itemCount: filtered.length,
+                        separatorBuilder: (_, __) => const Divider(height: 1),
+                        itemBuilder: (_, index) {
+                          final item = filtered[index];
+                          return ListTile(
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 2),
+                            leading: CircleAvatar(backgroundColor: AppColors.accentLight, child: Icon(title.startsWith('পণ্য') ? Icons.grass_rounded : Icons.person_outline_rounded, color: AppColors.primary, size: 19)),
+                            title: Text(label(item), style: const TextStyle(fontWeight: FontWeight.w600)),
+                            onTap: () {
+                              onSelected(id(item));
+                              Navigator.pop(sheetContext);
+                            },
+                          );
+                        },
+                      ),
+              ),
+            ]),
+          );
+        },
+      ),
+    );
+  }
+
   Widget _buildResultRow(String label, String value, {bool isBold = false, Color? highlightColor}) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
@@ -263,3 +358,5 @@ class _QuickCalculatorScreenState extends State<QuickCalculatorScreen> {
     );
   }
 }
+
+
