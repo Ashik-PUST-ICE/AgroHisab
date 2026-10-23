@@ -11,6 +11,8 @@ class ApiEndpoints {
   static const String me = '/me';
   static const String logout = '/logout';
   static const String forgotPassword = '/auth/forgot-password';
+  static const String changePassword = '/auth/change-password';
+  static const String profile = '/profile';
 
   // Purchases & Farmer Calculator
   static const String purchases = '/purchases';

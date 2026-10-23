@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../auth/presentation/screens/login_screen.dart';
+import '../../../auth/presentation/screens/profile_screen.dart';
 import '../../presentation/providers/dashboard_provider.dart';
 import '../../../procurement/presentation/screens/purchase_list_screen.dart';
 import '../../../procurement/presentation/screens/quick_calculator_screen.dart';
@@ -459,7 +460,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
       child: SafeArea(
         child: Column(
           children: [
-            Container(
+            InkWell(
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(context, MaterialPageRoute(builder: (_) => const ProfileScreen()));
+              },
+              child: Container(
               width: double.infinity,
               padding: const EdgeInsets.fromLTRB(20, 24, 20, 20),
               color: AppColors.primary,
@@ -468,6 +474,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 const SizedBox(width: 12),
                 Expanded(child: Text(authProvider.currentUser?.name ?? 'Md. Ashikur Rahman', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold))),
               ]),
+              ),
             ),
             Expanded(
               child: ListView(

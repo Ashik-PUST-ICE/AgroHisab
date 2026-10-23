@@ -91,6 +91,38 @@ class AuthApiService {
     return null;
   }
 
+  Future<UserModel?> getProfile() async {
+    final response = await _apiClient.get(ApiEndpoints.me);
+    if (!response.success || response.data == null) return null;
+    final raw = response.data is Map<String, dynamic> ? Map<String, dynamic>.from(response.data as Map) : <String, dynamic>{};
+    final data = raw['user'] is Map ? Map<String, dynamic>.from(raw['user'] as Map) : raw;
+    final user = UserModel.fromJson(data);
+    await _storage.saveUser(user.toJson());
+    return user;
+  }
+
+  Future<ApiResponse<UserModel>> updateProfile({required String firstName, String? lastName, required String email, String? mobile}) async {
+    final response = await _apiClient.put(ApiEndpoints.profile, body: {
+      'first_name': firstName.trim(),
+      if (lastName != null && lastName.trim().isNotEmpty) 'last_name': lastName.trim(),
+      'email': email.trim(),
+      if (mobile != null && mobile.trim().isNotEmpty) 'mobile': mobile.trim(),
+    });
+    if (!response.success || response.data == null) return ApiResponse(success: false, message: response.message, errors: response.errors);
+    final raw = response.data is Map<String, dynamic> ? Map<String, dynamic>.from(response.data as Map) : <String, dynamic>{};
+    final user = UserModel.fromJson(raw['user'] is Map ? Map<String, dynamic>.from(raw['user'] as Map) : raw);
+    await _storage.saveUser(user.toJson());
+    return ApiResponse(success: true, message: response.message, data: user);
+  }
+
+  Future<ApiResponse<dynamic>> changePassword({required String currentPassword, required String password, required String confirmation}) {
+    return _apiClient.post(ApiEndpoints.changePassword, body: {
+      'current_password': currentPassword,
+      'password': password,
+      'password_confirmation': confirmation,
+    });
+  }
+
   Future<bool> isAuthenticated() async {
     final token = await _storage.getToken();
     return token != null && token.isNotEmpty;

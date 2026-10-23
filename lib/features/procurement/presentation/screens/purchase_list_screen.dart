@@ -86,6 +86,14 @@ class _PurchaseListScreenState extends State<PurchaseListScreen> with SingleTick
 
                   if (provider.isLoading)
                     const Center(child: Padding(padding: EdgeInsets.all(40), child: CircularProgressIndicator()))
+                  else if (provider.errorMessage != null)
+                    Center(child: Padding(padding: const EdgeInsets.all(24), child: Column(children: [
+                      const Icon(Icons.error_outline_rounded, size: 48, color: AppColors.error),
+                      const SizedBox(height: 10),
+                      Text(provider.errorMessage!, textAlign: TextAlign.center, style: const TextStyle(color: AppColors.error)),
+                      const SizedBox(height: 12),
+                      OutlinedButton(onPressed: () => provider.fetchPurchases(), child: const Text('Retry')),
+                    ])))
                   else if (provider.purchases.isEmpty)
                     Center(
                       child: Padding(

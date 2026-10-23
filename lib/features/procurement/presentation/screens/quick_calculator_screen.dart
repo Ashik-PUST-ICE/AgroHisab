@@ -4,6 +4,8 @@ import '../../../../core/constants/app_colors.dart';
 import '../../../../core/widgets/custom_button.dart';
 import '../../../../core/widgets/custom_text_field.dart';
 import '../providers/procurement_provider.dart';
+import '../../../crops/presentation/providers/crop_provider.dart';
+import '../../../suppliers/presentation/providers/supplier_provider.dart';
 
 class QuickCalculatorScreen extends StatefulWidget {
   const QuickCalculatorScreen({super.key});
@@ -13,11 +15,23 @@ class QuickCalculatorScreen extends StatefulWidget {
 }
 
 class _QuickCalculatorScreenState extends State<QuickCalculatorScreen> {
+  int? _productId;
+  int? _supplierId;
   final _actualWeightCtrl = TextEditingController(text: '46');
   final _deductedWeightCtrl = TextEditingController(text: '1');
   final _monRateCtrl = TextEditingController(text: '122');
   final _monSizeCtrl = TextEditingController(text: '40');
   final _paidAmountCtrl = TextEditingController(text: '100');
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<CropProvider>().fetchCrops();
+      context.read<CropProvider>().fetchCategories();
+      context.read<SupplierProvider>().fetchSuppliers();
+    });
+  }
 
   @override
   void dispose() {
@@ -42,6 +56,10 @@ class _QuickCalculatorScreenState extends State<QuickCalculatorScreen> {
       );
       return;
     }
+    if (savePurchase && (_productId == null || _supplierId == null)) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Select product and supplier before saving the purchase.')));
+      return;
+    }
 
     final provider = Provider.of<ProcurementProvider>(context, listen: false);
     final result = await provider.calculate(
@@ -50,6 +68,8 @@ class _QuickCalculatorScreenState extends State<QuickCalculatorScreen> {
       monRate: monRate,
       monSize: monSize,
       paidAmount: paid,
+      productId: _productId,
+      supplierId: _supplierId,
       savePurchase: savePurchase,
     );
 
@@ -63,6 +83,8 @@ class _QuickCalculatorScreenState extends State<QuickCalculatorScreen> {
   @override
   Widget build(BuildContext context) {
     final provider = Provider.of<ProcurementProvider>(context);
+    final crops = context.watch<CropProvider>().crops;
+    final suppliers = context.watch<SupplierProvider>().suppliers;
     final result = provider.calculationResult;
 
     return Scaffold(
@@ -172,6 +194,20 @@ class _QuickCalculatorScreenState extends State<QuickCalculatorScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                  DropdownButtonFormField<int>(
+                    value: _productId,
+                    decoration: const InputDecoration(labelText: 'Product', prefixIcon: Icon(Icons.grass_rounded), border: OutlineInputBorder()),
+                    items: crops.map((crop) => DropdownMenuItem(value: crop.id, child: Text(crop.name))).toList(),
+                    onChanged: (value) => setState(() => _productId = value),
+                  ),
+                  const SizedBox(height: 12),
+                  DropdownButtonFormField<int>(
+                    value: _supplierId,
+                    decoration: const InputDecoration(labelText: 'Supplier / Farmer', prefixIcon: Icon(Icons.person_outline), border: OutlineInputBorder()),
+                    items: suppliers.map((supplier) => DropdownMenuItem(value: supplier.id, child: Text(supplier.name))).toList(),
+                    onChanged: (value) => setState(() => _supplierId = value),
+                  ),
+                  const SizedBox(height: 14),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: const [

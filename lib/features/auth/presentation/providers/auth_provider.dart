@@ -58,6 +58,41 @@ class AuthProvider extends ChangeNotifier {
     return _currentUser != null;
   }
 
+  Future<void> refreshProfile() async {
+    try {
+      final user = await _authService.getProfile();
+      if (user != null) {
+        _currentUser = user;
+        notifyListeners();
+      }
+    } catch (e) {
+      debugPrint('Profile refresh failed: $e');
+    }
+  }
+
+  Future<bool> updateProfile({required String firstName, String? lastName, required String email, String? mobile}) async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+    final response = await _authService.updateProfile(firstName: firstName, lastName: lastName, email: email, mobile: mobile);
+    if (response.success && response.data != null) _currentUser = response.data;
+    _errorMessage = response.success ? null : response.message;
+    _isLoading = false;
+    notifyListeners();
+    return response.success;
+  }
+
+  Future<bool> changePassword({required String currentPassword, required String password, required String confirmation}) async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+    final response = await _authService.changePassword(currentPassword: currentPassword, password: password, confirmation: confirmation);
+    _errorMessage = response.success ? null : response.message;
+    _isLoading = false;
+    notifyListeners();
+    return response.success;
+  }
+
   Future<bool> login({
     required String emailOrPhone,
     required String password,

@@ -41,6 +41,8 @@ class ApiClient {
     final isAuthService = endpoint == ApiEndpoints.login ||
         endpoint == ApiEndpoints.register ||
         endpoint == ApiEndpoints.forgotPassword ||
+        endpoint == ApiEndpoints.changePassword ||
+        endpoint == ApiEndpoints.profile ||
         endpoint == ApiEndpoints.me ||
         endpoint == ApiEndpoints.logout ||
         endpoint.startsWith('/storage/') ||

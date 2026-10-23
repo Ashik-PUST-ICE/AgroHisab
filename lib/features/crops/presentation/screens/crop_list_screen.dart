@@ -17,6 +17,7 @@ class _CropListScreenState extends State<CropListScreen> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       Provider.of<CropProvider>(context, listen: false).fetchCrops();
+      Provider.of<CropProvider>(context, listen: false).fetchCategories();
     });
   }
 
@@ -25,6 +26,7 @@ class _CropListScreenState extends State<CropListScreen> {
     final nameCtrl = TextEditingController();
     final varietyCtrl = TextEditingController();
     final descCtrl = TextEditingController();
+    int? categoryId;
 
     showDialog(
       context: context,
@@ -58,7 +60,7 @@ class _CropListScreenState extends State<CropListScreen> {
                 'name': nameCtrl.text,
                 'variety': varietyCtrl.text,
                 'description': descCtrl.text,
-                'category_id': 1,
+                if (categoryId != null) 'category_id': categoryId,
                 'default_unit_id': 1,
               });
               if (mounted && ok) {
