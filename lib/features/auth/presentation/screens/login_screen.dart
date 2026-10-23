@@ -6,6 +6,8 @@ import '../../../../core/widgets/custom_button.dart';
 import '../../../../core/widgets/custom_text_field.dart';
 import '../providers/auth_provider.dart';
 import '../../../dashboard/presentation/screens/dashboard_screen.dart';
+import 'register_screen.dart';
+import 'forgot_password_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -189,6 +191,8 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                     TextButton(
                       onPressed: () {
+                        Navigator.push(context, MaterialPageRoute(builder: (_) => const ForgotPasswordScreen()));
+                        return;
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(content: Text('পাসওয়ার্ড রিসেট করতে অ্যাডমিনের সাথে যোগাযোগ করুন')),
                         );
@@ -228,6 +232,8 @@ class _LoginScreenState extends State<LoginScreen> {
                   text: 'নতুন অ্যাকাউন্ট তৈরি করুন',
                   isOutline: true,
                   onPressed: () {
+                    Navigator.push(context, MaterialPageRoute(builder: (_) => const RegisterScreen()));
+                    return;
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(content: Text('নতুন অ্যাকাউন্ট খুলতে অ্যাডমিনের সহায়তা নিন')),
                     );

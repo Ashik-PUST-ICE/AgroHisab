@@ -5,6 +5,15 @@ import '../models/storage_model.dart';
 class StorageApiService {
   final ApiClient _client = ApiClient();
 
+  Future<ApiResponse<dynamic>> updateSettings({required String provider, Map<String, dynamic>? credentials, String? root, String? publicUrl}) {
+    return _client.put('/storage-settings', body: {
+      'provider': provider,
+      if (credentials != null && credentials.isNotEmpty) 'credentials': credentials,
+      if (root != null && root.isNotEmpty) 'root': root,
+      if (publicUrl != null && publicUrl.isNotEmpty) 'public_url': publicUrl,
+    });
+  }
+
   Future<StorageInfoModel?> getStorageInfo() async {
     final res = await _client.get('/storage/info');
     if (res.data != null && res.data is Map<String, dynamic>) {

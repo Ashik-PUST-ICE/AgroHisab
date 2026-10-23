@@ -14,6 +14,34 @@ class AuthProvider extends ChangeNotifier {
   String? get errorMessage => _errorMessage;
   bool get isAuthenticated => _currentUser != null;
 
+  Future<bool> register({
+    required String firstName,
+    String? lastName,
+    required String email,
+    required String password,
+    required String passwordConfirmation,
+  }) async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+    final response = await _authService.register(firstName: firstName, lastName: lastName, email: email, password: password, passwordConfirmation: passwordConfirmation);
+    _isLoading = false;
+    _errorMessage = response.success ? null : response.message;
+    notifyListeners();
+    return response.success;
+  }
+
+  Future<bool> forgotPassword(String email) async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+    final response = await _authService.forgotPassword(email);
+    _isLoading = false;
+    _errorMessage = response.success ? null : response.message;
+    notifyListeners();
+    return response.success;
+  }
+
   Future<bool> checkAuthStatus() async {
     _isLoading = true;
     notifyListeners();

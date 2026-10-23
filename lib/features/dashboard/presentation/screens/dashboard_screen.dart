@@ -10,17 +10,14 @@ import '../../../challan/presentation/screens/challan_list_screen.dart';
 import '../../../aratdar/presentation/screens/aratdar_list_screen.dart';
 import '../../../stock/presentation/screens/stock_summary_screen.dart';
 import '../../../accounts/presentation/screens/accounts_screen.dart';
-import '../../../storage/presentation/screens/storage_settings_screen.dart';
 import '../../../reports/presentation/screens/reports_screen.dart';
-import '../../../suppliers/presentation/screens/supplier_list_screen.dart';
 import '../../../diary/presentation/screens/diary_screen.dart';
-import '../../../remittances/presentation/screens/remittance_list_screen.dart';
-import '../../../transporters/presentation/screens/transporter_list_screen.dart';
 import '../../../documents/presentation/screens/document_vault_screen.dart';
 import '../../../crops/presentation/screens/crop_list_screen.dart';
 import '../../../markets/presentation/screens/market_list_screen.dart';
 import '../../../units/presentation/screens/unit_conversion_screen.dart';
 import '../../../notifications/presentation/screens/notification_screen.dart';
+import '../../../storage/presentation/screens/storage_settings_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -77,26 +74,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.cloud_sync, color: AppColors.primary),
-            tooltip: 'স্টোরেজ সেটিংস',
-            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const StorageSettingsScreen())),
-          ),
-          IconButton(
-            icon: const Icon(Icons.people_alt, color: AppColors.primary),
-            tooltip: 'কৃষক ও বেপারী',
-            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SupplierListScreen())),
-          ),
-          IconButton(
-            icon: const Icon(Icons.price_check, color: AppColors.primary),
-            tooltip: 'আড়ত জমা',
-            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const RemittanceListScreen())),
-          ),
-          IconButton(
-            icon: const Icon(Icons.local_shipping, color: AppColors.primary),
-            tooltip: 'ট্রাক ও পরিবহন',
-            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const TransporterListScreen())),
-          ),
-          IconButton(
             icon: const Badge(
               label: Text('৩'),
               child: Icon(Icons.notifications_outlined, color: AppColors.textPrimary),
@@ -118,6 +95,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ),
         ],
       ),
+      drawer: _buildDrawer(authProvider),
       body: RefreshIndicator(
         onRefresh: () => dashProvider.fetchMetrics(),
         child: SingleChildScrollView(
@@ -466,4 +444,59 @@ class _DashboardScreenState extends State<DashboardScreen> {
       ),
     );
   }
+
+  Widget _buildDrawer(AuthProvider authProvider) {
+    final items = [
+      ('Purchases', Icons.shopping_basket_rounded, const PurchaseListScreen()),
+      ('Challan', Icons.local_shipping_rounded, const ChallanListScreen()),
+      ('Calculator', Icons.calculate_rounded, const QuickCalculatorScreen()),
+      ('Aratdar', Icons.storefront_rounded, const AratdarListScreen()),
+      ('Accounts', Icons.account_balance_rounded, const AccountsScreen()),
+      ('Reports', Icons.analytics_rounded, const ReportsScreen()),
+      ('Storage settings', Icons.cloud_sync_rounded, const StorageSettingsScreen()),
+    ];
+    return Drawer(
+      child: SafeArea(
+        child: Column(
+          children: [
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.fromLTRB(20, 24, 20, 20),
+              color: AppColors.primary,
+              child: Row(children: [
+                const CircleAvatar(radius: 25, backgroundColor: Colors.white, child: Icon(Icons.person, color: AppColors.primary, size: 28)),
+                const SizedBox(width: 12),
+                Expanded(child: Text(authProvider.currentUser?.name ?? 'Md. Ashikur Rahman', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold))),
+              ]),
+            ),
+            Expanded(
+              child: ListView(
+                children: items.map((item) => ListTile(
+                  leading: Icon(item.$2, color: AppColors.primary),
+                  title: Text(item.$1),
+                  trailing: const Icon(Icons.chevron_right_rounded),
+                  onTap: () {
+                    Navigator.pop(context);
+                    Navigator.push(context, MaterialPageRoute(builder: (_) => item.$3));
+                  },
+                )).toList(),
+              ),
+            ),
+            const Divider(height: 1),
+            ListTile(
+              leading: const Icon(Icons.logout_rounded, color: AppColors.error),
+              title: const Text('Logout', style: TextStyle(color: AppColors.error)),
+              onTap: () async {
+                Navigator.pop(context);
+                await authProvider.logout();
+                if (mounted) Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (_) => const LoginScreen()), (_) => false);
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }
+
+

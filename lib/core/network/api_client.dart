@@ -23,13 +23,9 @@ class ApiClient {
   String _baseUrl = ApiEndpoints.defaultBaseUrl;
 
   ApiClient() {
-    try {
-      if (!Platform.isAndroid && !Platform.isIOS) {
-        _baseUrl = 'http://localhost:8000/api/v1';
-      }
-    } catch (_) {
-      _baseUrl = 'http://localhost:8000/api/v1';
-    }
+    _baseUrl = Platform.isAndroid || Platform.isIOS
+        ? 'http://192.168.0.102:8000/api'
+        : 'http://localhost:8000/api';
   }
 
   void setBaseUrl(String url) {
@@ -37,6 +33,26 @@ class ApiClient {
   }
 
   String get baseUrl => _baseUrl;
+
+  String _servicePrefix(String endpoint) {
+    final isPublicAuth = endpoint == ApiEndpoints.login ||
+        endpoint == ApiEndpoints.register ||
+        endpoint == ApiEndpoints.forgotPassword;
+    final isAuthService = endpoint == ApiEndpoints.login ||
+        endpoint == ApiEndpoints.register ||
+        endpoint == ApiEndpoints.forgotPassword ||
+        endpoint == ApiEndpoints.me ||
+        endpoint == ApiEndpoints.logout ||
+        endpoint.startsWith('/storage/') ||
+        endpoint.startsWith('/settings/storage') ||
+        endpoint.startsWith('/storage-settings');
+
+    if (isPublicAuth) return '/p/auth_service/v1';
+    if (isAuthService) return '/u/auth_service/v1';
+    return '/u/business_service/v1';
+  }
+
+  Uri _uri(String endpoint) => Uri.parse('$_baseUrl${_servicePrefix(endpoint)}$endpoint');
 
   Future<Map<String, String>> _headers() async {
     final token = await _storage.getToken();
@@ -52,7 +68,7 @@ class ApiClient {
 
   Future<ApiResponse<dynamic>> get(String endpoint, {Map<String, String>? queryParams}) async {
     try {
-      var uri = Uri.parse('$_baseUrl$endpoint');
+      var uri = _uri(endpoint);
       if (queryParams != null && queryParams.isNotEmpty) {
         uri = uri.replace(queryParameters: queryParams);
       }
@@ -66,7 +82,7 @@ class ApiClient {
 
   Future<ApiResponse<dynamic>> post(String endpoint, {Map<String, dynamic>? body}) async {
     try {
-      final uri = Uri.parse('$_baseUrl$endpoint');
+      final uri = _uri(endpoint);
       final response = await http.post(
         uri,
         headers: await _headers(),
@@ -80,7 +96,7 @@ class ApiClient {
 
   Future<ApiResponse<dynamic>> put(String endpoint, {Map<String, dynamic>? body}) async {
     try {
-      final uri = Uri.parse('$_baseUrl$endpoint');
+      final uri = _uri(endpoint);
       final response = await http.put(
         uri,
         headers: await _headers(),
@@ -94,7 +110,7 @@ class ApiClient {
 
   Future<ApiResponse<dynamic>> delete(String endpoint) async {
     try {
-      final uri = Uri.parse('$_baseUrl$endpoint');
+      final uri = _uri(endpoint);
       final response = await http.delete(uri, headers: await _headers());
       return _parseResponse(response);
     } catch (e) {
@@ -109,7 +125,7 @@ class ApiClient {
     Map<String, String>? fields,
   }) async {
     try {
-      final uri = Uri.parse('$_baseUrl$endpoint');
+      final uri = _uri(endpoint);
       final request = http.MultipartRequest('POST', uri);
       final token = await _storage.getToken();
       request.headers['Accept'] = 'application/json';

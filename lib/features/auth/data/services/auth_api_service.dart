@@ -7,6 +7,26 @@ class AuthApiService {
   final ApiClient _apiClient = ApiClient();
   final TokenStorage _storage = TokenStorage();
 
+  Future<ApiResponse<dynamic>> register({
+    required String firstName,
+    String? lastName,
+    required String email,
+    required String password,
+    required String passwordConfirmation,
+  }) {
+    return _apiClient.post(ApiEndpoints.register, body: {
+      'first_name': firstName,
+      if (lastName != null && lastName.trim().isNotEmpty) 'last_name': lastName.trim(),
+      'email': email.trim(),
+      'password': password,
+      'password_confirmation': passwordConfirmation,
+    });
+  }
+
+  Future<ApiResponse<dynamic>> forgotPassword(String email) {
+    return _apiClient.post(ApiEndpoints.forgotPassword, body: {'email': email.trim()});
+  }
+
   Future<ApiResponse<UserModel>> login({
     required String emailOrPhone,
     required String password,
