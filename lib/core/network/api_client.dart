@@ -20,41 +20,11 @@ class ApiResponse<T> {
 
 class ApiClient {
   final TokenStorage _storage = TokenStorage();
-  String _baseUrl = ApiEndpoints.defaultBaseUrl;
+  final String _baseUrl = Platform.isAndroid || Platform.isIOS
+      ? ApiEndpoints.defaultBaseUrl
+      : 'http://localhost:8000/api';
 
-  ApiClient() {
-    _baseUrl = Platform.isAndroid || Platform.isIOS
-        ? 'http://192.168.0.102:8000/api'
-        : 'http://localhost:8000/api';
-  }
-
-  void setBaseUrl(String url) {
-    _baseUrl = url;
-  }
-
-  String get baseUrl => _baseUrl;
-
-  String _servicePrefix(String endpoint) {
-    final isPublicAuth = endpoint == ApiEndpoints.login ||
-        endpoint == ApiEndpoints.register ||
-        endpoint == ApiEndpoints.forgotPassword;
-    final isAuthService = endpoint == ApiEndpoints.login ||
-        endpoint == ApiEndpoints.register ||
-        endpoint == ApiEndpoints.forgotPassword ||
-        endpoint == ApiEndpoints.changePassword ||
-        endpoint == ApiEndpoints.profile ||
-        endpoint == ApiEndpoints.me ||
-        endpoint == ApiEndpoints.logout ||
-        endpoint.startsWith('/storage/') ||
-        endpoint.startsWith('/settings/storage') ||
-        endpoint.startsWith('/storage-settings');
-
-    if (isPublicAuth) return '/p/auth_service/v1';
-    if (isAuthService) return '/u/auth_service/v1';
-    return '/u/business_service/v1';
-  }
-
-  Uri _uri(String endpoint) => Uri.parse('$_baseUrl${_servicePrefix(endpoint)}$endpoint');
+  Uri _uri(String endpoint) => Uri.parse('$_baseUrl${ApiEndpoints.servicePrefixFor(endpoint)}$endpoint');
 
   Future<Map<String, String>> _headers() async {
     final token = await _storage.getToken();

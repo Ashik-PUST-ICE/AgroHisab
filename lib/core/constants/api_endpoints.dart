@@ -35,4 +35,34 @@ class ApiEndpoints {
   static const String accounts = '/accounts';
   static const String dashboardMetrics = '/dashboard/metrics';
   static const String reportsProfitability = '/reports/profitability';
+
+  static const Set<String> _publicAuthEndpoints = {
+    login,
+    register,
+    forgotPassword,
+  };
+
+  static const Set<String> _authServiceEndpoints = {
+    changePassword,
+    profile,
+    me,
+    logout,
+  };
+
+  /// Returns the gateway service prefix for an API endpoint.
+  /// Keeping this mapping here leaves ApiClient responsible only for HTTP.
+  static String servicePrefixFor(String endpoint) {
+    if (_publicAuthEndpoints.contains(endpoint)) {
+      return '/p/auth_service/v1';
+    }
+
+    if (_authServiceEndpoints.contains(endpoint) ||
+        endpoint.startsWith('/storage/') ||
+        endpoint.startsWith('/settings/storage') ||
+        endpoint.startsWith('/storage-settings')) {
+      return '/u/auth_service/v1';
+    }
+
+    return '/u/business_service/v1';
+  }
 }
