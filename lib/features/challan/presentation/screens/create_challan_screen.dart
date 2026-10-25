@@ -66,77 +66,78 @@ class _CreateChallanScreenState extends State<CreateChallanScreen> {
   }
 
   void _addExpenseDialog() {
-    final challanProvider = Provider.of<ChallanProvider>(context, listen: false);
-    final heads = challanProvider.expenseHeads;
-    int selectedType = heads.isNotEmpty ? heads.first.id : 1;
+    final heads = context.read<ChallanProvider>().expenseHeads;
+    if (heads.isEmpty) return;
+    int selectedType = heads.first.id;
+    String paidBy = heads.first.defaultPaidBy;
     final amountCtrl = TextEditingController();
-    String paidBy = heads.isNotEmpty ? heads.first.defaultPaidBy : 'owner';
 
-    showDialog(
+    showModalBottomSheet(
       context: context,
-      builder: (ctx) => StatefulBuilder(
-        builder: (ctx, setDlgState) => AlertDialog(
-          title: const Text('চালানে খরচ যোগ করুন', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              DropdownButtonFormField<int>(
-                value: selectedType,
-                decoration: const InputDecoration(labelText: 'খরচের খাত সিলেক্ট করুন'),
-                items: heads.map((h) => DropdownMenuItem(value: h.id, child: Text(h.name, style: const TextStyle(fontSize: 12)))).toList(),
-                onChanged: (val) {
-                  if (val != null) {
-                    setDlgState(() {
-                      selectedType = val;
-                      final h = heads.firstWhere((e) => e.id == val, orElse: () => heads.first);
-                      paidBy = h.defaultPaidBy;
-                    });
-                  }
-                },
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: amountCtrl,
-                keyboardType: TextInputType.number,
-                decoration: const InputDecoration(labelText: 'টাকার পরিমাণ (৳)'),
-              ),
-              const SizedBox(height: 12),
-              DropdownButtonFormField<String>(
-                value: paidBy,
-                decoration: const InputDecoration(labelText: 'কে বহন করবে?'),
-                items: const [
-                  DropdownMenuItem(value: 'owner', child: Text('মালিক (Owner)')),
-                  DropdownMenuItem(value: 'aratdar', child: Text('আড়তদার (Aratdar বিক্রি থেকে কাটবে)')),
-                  DropdownMenuItem(value: 'shared', child: Text('যৌথ (Shared)')),
-                ],
-                onChanged: (val) => setDlgState(() => paidBy = val ?? 'owner'),
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('বাতিল')),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
-              onPressed: () {
-                final amt = double.tryParse(amountCtrl.text) ?? 0;
-                if (amt <= 0) return;
-                final h = heads.firstWhere((e) => e.id == selectedType, orElse: () => heads.first);
-                setState(() {
-                  _dynamicExpenses.add(ShipmentExpenseItem(
-                    type: selectedType,
-                    head: h.name,
-                    amount: amt,
-                    paidBy: paidBy,
-                  ));
-                });
-                Navigator.pop(ctx);
-              },
-              child: const Text('যোগ করুন', style: TextStyle(color: Colors.white)),
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (sheetContext) => StatefulBuilder(
+        builder: (context, setSheetState) {
+          final selectedHead = heads.firstWhere((head) => head.id == selectedType, orElse: () => heads.first);
+          return SafeArea(
+            child: Container(
+              height: MediaQuery.of(context).size.height * .88,
+              padding: EdgeInsets.fromLTRB(20, 12, 20, MediaQuery.of(context).viewInsets.bottom + 16),
+              decoration: const BoxDecoration(color: Colors.white, borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Center(child: Container(width: 42, height: 4, decoration: BoxDecoration(color: AppColors.border, borderRadius: BorderRadius.circular(4)))),
+                const SizedBox(height: 16),
+                Row(children: [
+                  const Expanded(child: Text('খরচ যোগ করুন', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.textPrimary))),
+                  IconButton(onPressed: () => Navigator.pop(sheetContext), icon: const Icon(Icons.close)),
+                ]),
+                const Text('চালানের এই খরচটি সঠিক খাত ও বহনকারী অনুযায়ী দিন', style: TextStyle(color: AppColors.textSecondary)),
+                const SizedBox(height: 20),
+                const Text('খরচের খাত', style: TextStyle(fontWeight: FontWeight.w600)),
+                const SizedBox(height: 8),
+                Expanded(child: ListView.separated(
+                  itemCount: heads.length,
+                  separatorBuilder: (_, __) => const SizedBox(height: 6),
+                  itemBuilder: (_, index) {
+                    final head = heads[index];
+                    final selected = head.id == selectedType;
+                    return InkWell(
+                      onTap: () => setSheetState(() { selectedType = head.id; paidBy = head.defaultPaidBy; }),
+                      borderRadius: BorderRadius.circular(12),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                        decoration: BoxDecoration(color: selected ? AppColors.accentLight : AppColors.background, borderRadius: BorderRadius.circular(12), border: Border.all(color: selected ? AppColors.primary : AppColors.border)),
+                        child: Row(children: [Expanded(child: Text(head.name, maxLines: 2, overflow: TextOverflow.ellipsis)), Icon(selected ? Icons.radio_button_checked : Icons.radio_button_off, color: selected ? AppColors.primary : AppColors.textSecondary)]),
+                      ),
+                    );
+                  },
+                )),
+                const SizedBox(height: 12),
+                TextField(controller: amountCtrl, keyboardType: const TextInputType.numberWithOptions(decimal: true), decoration: const InputDecoration(labelText: 'টাকার পরিমাণ (৳)', prefixIcon: Icon(Icons.payments_outlined))),
+                const SizedBox(height: 12),
+                Row(children: [
+                  const Text('কে বহন করবে?', style: TextStyle(fontWeight: FontWeight.w600)),
+                  const Spacer(),
+                  ChoiceChip(label: const Text('মালিক'), selected: paidBy == 'owner', onSelected: (_) => setSheetState(() => paidBy = 'owner')),
+                  const SizedBox(width: 6),
+                  ChoiceChip(label: const Text('আড়তদার'), selected: paidBy == 'aratdar', onSelected: (_) => setSheetState(() => paidBy = 'aratdar')),
+                ]),
+                const SizedBox(height: 14),
+                SizedBox(width: double.infinity, child: ElevatedButton.icon(
+                  icon: const Icon(Icons.add), label: const Text('খরচ যোগ করুন'),
+                  onPressed: () {
+                    final amount = double.tryParse(amountCtrl.text) ?? 0;
+                    if (amount <= 0) return;
+                    setState(() => _dynamicExpenses.add(ShipmentExpenseItem(type: selectedType, head: selectedHead.name, amount: amount, paidBy: paidBy)));
+                    Navigator.pop(sheetContext);
+                  },
+                )),
+              ]),
             ),
-          ],
-        ),
+          );
+        },
       ),
-    );
+    ).whenComplete(amountCtrl.dispose);
   }
 
   void _submitChallan() async {
@@ -194,6 +195,38 @@ class _CreateChallanScreenState extends State<CreateChallanScreen> {
   }
 
   @override
+  Future<int?> _openFullPagePicker(String title, List<MapEntry<int, String>> options) async {
+    return Navigator.of(context).push<int>(MaterialPageRoute(builder: (_) => Scaffold(
+      appBar: AppBar(title: Text(title)),
+      body: ListView.separated(
+        padding: const EdgeInsets.all(16),
+        itemCount: options.length,
+        separatorBuilder: (_, __) => const SizedBox(height: 8),
+        itemBuilder: (_, index) => Material(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          child: ListTile(
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            title: Text(options[index].value, maxLines: 2, overflow: TextOverflow.ellipsis),
+            trailing: const Icon(Icons.chevron_right_rounded),
+            onTap: () => Navigator.pop(context, options[index].key),
+          ),
+        ),
+      ),
+    )));
+  }
+
+  Widget _pickerField({required String label, required String value, required VoidCallback onTap}) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(10),
+      child: InputDecorator(
+        decoration: InputDecoration(labelText: label, suffixIcon: const Icon(Icons.arrow_forward_ios_rounded, size: 16)),
+        child: Text(value, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w600)),
+      ),
+    );
+  }
+
   Widget build(BuildContext context) {
     final challanProvider = Provider.of<ChallanProvider>(context);
     final aratdarProvider = Provider.of<AratdarProvider>(context);
@@ -231,14 +264,15 @@ class _CreateChallanScreenState extends State<CreateChallanScreen> {
                     enabled: false,
                   )
                 else
-                  DropdownButtonFormField<int>(
-                    value: _selectedAratdarId ?? aratdarProvider.aratdars.first.id,
-                    decoration: const InputDecoration(labelText: 'আড়তদার নির্বাচন করুন *'),
-                    items: aratdarProvider.aratdars.map((a) => DropdownMenuItem(
-                      value: a.id,
-                      child: Text('${a.name} (${a.market ?? a.district ?? "মোকাম"})'),
-                    )).toList(),
-                    onChanged: (val) => setState(() => _selectedAratdarId = val),
+                  _pickerField(
+                    label: 'আড়তদার নির্বাচন করুন *',
+                    value: _selectedAratdarId == null
+                        ? 'নির্বাচন করুন'
+                        : aratdarProvider.aratdars.firstWhere((a) => a.id == _selectedAratdarId).name,
+                    onTap: () async {
+                      final id = await _openFullPagePicker('আড়তদার নির্বাচন করুন', aratdarProvider.aratdars.map((a) => MapEntry(a.id, a.name)).toList());
+                      if (id != null && mounted) setState(() => _selectedAratdarId = id);
+                    },
                   ),
                 const SizedBox(height: 12),
                 Row(
@@ -288,12 +322,21 @@ class _CreateChallanScreenState extends State<CreateChallanScreen> {
                 const SizedBox(height: 12),
                 if (cropProvider.crops.isNotEmpty)
                   DropdownButtonFormField<int>(
+                    isExpanded: true,
+                    icon: const Icon(Icons.keyboard_arrow_down_rounded),
+                    dropdownColor: Colors.white,
+                    menuMaxHeight: 360,
+                    borderRadius: BorderRadius.circular(14),
                     value: _selectedProductId ?? cropProvider.crops.first.id,
                     decoration: const InputDecoration(labelText: 'কৃষিপণ্য নির্বাচন করুন *'),
                     items: cropProvider.crops.map((c) => DropdownMenuItem(
                       value: c.id,
                       child: Text('${c.name} ${c.variety != null ? "(${c.variety})" : ""}'),
                     )).toList(),
+                    onTap: () async {
+                      final id = await _openFullPagePicker('কৃষিপণ্য নির্বাচন করুন', cropProvider.crops.map((c) => MapEntry(c.id, c.name)).toList());
+                      if (id != null && mounted) setState(() => _selectedProductId = id);
+                    },
                     onChanged: (val) => setState(() => _selectedProductId = val),
                   )
                 else
@@ -336,6 +379,11 @@ class _CreateChallanScreenState extends State<CreateChallanScreen> {
                 const SizedBox(height: 12),
                 if (transporterProvider.transporters.isNotEmpty)
                   DropdownButtonFormField<int>(
+                    isExpanded: true,
+                    icon: const Icon(Icons.keyboard_arrow_down_rounded),
+                    dropdownColor: Colors.white,
+                    menuMaxHeight: 360,
+                    borderRadius: BorderRadius.circular(14),
                     value: _selectedTransporterId,
                     decoration: const InputDecoration(labelText: 'ট্রান্সপোর্টার সিলেক্ট করুন (ঐচ্ছিক)'),
                     items: [
@@ -345,6 +393,11 @@ class _CreateChallanScreenState extends State<CreateChallanScreen> {
                         child: Text('${t.name} (${t.truckNumber ?? ""})'),
                       )),
                     ],
+                    onTap: () async {
+                      final id = await _openFullPagePicker('ট্রান্সপোর্টার নির্বাচন করুন', transporterProvider.transporters.map((t) => MapEntry(t.id, '${t.name} (${t.truckNumber ?? ''})')).toList());
+                      if (id == null || !mounted) return;
+                      setState(() => _selectedTransporterId = id);
+                    },
                     onChanged: (val) {
                       setState(() {
                         _selectedTransporterId = val;
@@ -374,6 +427,11 @@ class _CreateChallanScreenState extends State<CreateChallanScreen> {
                     const SizedBox(width: 12),
                     Expanded(
                       child: DropdownButtonFormField<String>(
+                        isExpanded: true,
+                        icon: const Icon(Icons.keyboard_arrow_down_rounded),
+                        dropdownColor: Colors.white,
+                        menuMaxHeight: 220,
+                        borderRadius: BorderRadius.circular(14),
                         value: _freightPaidBy,
                         decoration: const InputDecoration(labelText: 'ভাড়া পরিশোধ'),
                         items: const [
