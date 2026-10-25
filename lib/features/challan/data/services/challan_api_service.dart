@@ -36,6 +36,30 @@ class ChallanApiService {
   }
 
   // 3. Single Shipment details
+  Future<ApiResponse<List<DispatchPurchaseItemModel>>> getDispatchPurchaseItems() async {
+    final response = await _apiClient.get('/purchases', queryParams: {'per_page': '100'});
+    if (!response.success || response.data == null) return ApiResponse(success: false, message: response.message, errors: response.errors);
+    final payload = response.data;
+    final purchases = payload is List ? payload : (payload is Map && payload['data'] is List ? payload['data'] as List : <dynamic>[]);
+    final result = <DispatchPurchaseItemModel>[];
+    for (final purchase in purchases.whereType<Map<String, dynamic>>()) {
+      final supplier = (purchase['supplier_name'] ?? purchase['supplier']?['name'] ?? 'কৃষক').toString();
+      for (final raw in (purchase['items'] as List<dynamic>? ?? []).whereType<Map<String, dynamic>>()) {
+        result.add(DispatchPurchaseItemModel(
+          id: (raw['id'] as num?)?.toInt() ?? 0,
+          purchaseNumber: purchase['purchase_number']?.toString() ?? '',
+          supplierName: supplier,
+          productName: (raw['product_name'] ?? raw['product']?['name'] ?? 'পণ্য').toString(),
+          availableWeight: (raw['net_weight'] as num?)?.toDouble() ?? 0,
+          bagCount: (raw['bag_count'] as num?)?.toInt() ?? 0,
+          unitName: (raw['unit_name'] ?? raw['unit']?['name'] ?? 'কেজি').toString(),
+          purchaseDate: purchase['purchase_date']?.toString() ?? '',
+        ));
+      }
+    }
+    return ApiResponse(success: true, message: response.message, data: result);
+  }
+
   Future<ApiResponse<ShipmentModel>> getShipment(int id) async {
     final response = await _apiClient.get('/shipments/$id');
     if (response.success && response.data != null) {

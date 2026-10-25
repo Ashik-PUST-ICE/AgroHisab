@@ -58,6 +58,19 @@ class ShipmentItemModel {
   }
 }
 
+class DispatchPurchaseItemModel {
+  final int id;
+  final String purchaseNumber;
+  final String supplierName;
+  final String productName;
+  final double availableWeight;
+  final int bagCount;
+  final String unitName;
+  final String purchaseDate;
+
+  DispatchPurchaseItemModel({required this.id, required this.purchaseNumber, required this.supplierName, required this.productName, required this.availableWeight, required this.bagCount, required this.unitName, required this.purchaseDate});
+}
+
 class ShipmentExpenseItem {
   final int? type;
   final String head;

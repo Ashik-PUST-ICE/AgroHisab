@@ -8,6 +8,7 @@ class ChallanProvider extends ChangeNotifier {
 
   List<ShipmentModel> _shipments = [];
   List<ExpenseHeadModel> _expenseHeads = [];
+  List<DispatchPurchaseItemModel> _dispatchPurchaseItems = [];
   ShipmentModel? _selectedShipment;
   List<ShipmentSaleModel> _shipmentSales = [];
   Map<String, dynamic>? _challanPrintData;
@@ -18,6 +19,7 @@ class ChallanProvider extends ChangeNotifier {
 
   List<ShipmentModel> get shipments => _shipments;
   List<ExpenseHeadModel> get expenseHeads => _expenseHeads;
+  List<DispatchPurchaseItemModel> get dispatchPurchaseItems => _dispatchPurchaseItems;
   ShipmentModel? get selectedShipment => _selectedShipment;
   List<ShipmentSaleModel> get shipmentSales => _shipmentSales;
   Map<String, dynamic>? get challanPrintData => _challanPrintData;
@@ -30,6 +32,14 @@ class ChallanProvider extends ChangeNotifier {
     final res = await _apiService.getExpenseHeads();
     if (res.success && res.data != null) {
       _expenseHeads = res.data!;
+      notifyListeners();
+    }
+  }
+
+  Future<void> fetchDispatchPurchaseItems() async {
+    final res = await _apiService.getDispatchPurchaseItems();
+    if (res.success && res.data != null) {
+      _dispatchPurchaseItems = res.data!;
       notifyListeners();
     }
   }

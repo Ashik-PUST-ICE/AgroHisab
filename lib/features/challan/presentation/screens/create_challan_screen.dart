@@ -22,7 +22,7 @@ class _CreateChallanScreenState extends State<CreateChallanScreen> {
   int? _selectedAratdarId;
   int? _selectedTransporterId;
   int? _selectedProductId;
-  int? _selectedPurchaseItemId;
+  final List<int> _selectedPurchaseItemIds = [];
 
   final _vehicleCtrl = TextEditingController(text: 'ঢাকা মেট্রো-ট ১১-২২৩৩');
   final _driverNameCtrl = TextEditingController(text: 'রহিম মিয়া');
@@ -50,6 +50,7 @@ class _CreateChallanScreenState extends State<CreateChallanScreen> {
       Provider.of<CropProvider>(context, listen: false).fetchCrops();
       Provider.of<ProcurementProvider>(context, listen: false).fetchPurchases();
       Provider.of<ChallanProvider>(context, listen: false).fetchExpenseHeads();
+      Provider.of<ChallanProvider>(context, listen: false).fetchDispatchPurchaseItems();
     });
   }
 
@@ -143,6 +144,7 @@ class _CreateChallanScreenState extends State<CreateChallanScreen> {
   void _submitChallan() async {
     final aratdarProvider = Provider.of<AratdarProvider>(context, listen: false);
     final cropProvider = Provider.of<CropProvider>(context, listen: false);
+    final challanProvider = Provider.of<ChallanProvider>(context, listen: false);
 
     int aratdarId = _selectedAratdarId ?? (aratdarProvider.aratdars.isNotEmpty ? aratdarProvider.aratdars.first.id : 1);
     int productId = _selectedProductId ?? (cropProvider.crops.isNotEmpty ? cropProvider.crops.first.id : 1);
@@ -157,6 +159,11 @@ class _CreateChallanScreenState extends State<CreateChallanScreen> {
       );
       return;
     }
+    final selectedItems = challanProvider.dispatchPurchaseItems.where((item) => _selectedPurchaseItemIds.contains(item.id)).toList();
+    if (selectedItems.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(backgroundColor: AppColors.error, content: Text('কমপক্ষে একটি ক্রয়কৃত পণ্য নির্বাচন করুন')));
+      return;
+    }
 
     final body = {
       'aratdar_id': aratdarId,
@@ -165,19 +172,15 @@ class _CreateChallanScreenState extends State<CreateChallanScreen> {
       'vehicle_number': _vehicleCtrl.text.trim(),
       'freight_amount': freight,
       'freight_paid_by': _freightPaidBy,
-      'items': [
-        {
-          if (_selectedPurchaseItemId != null) 'purchase_item_id': _selectedPurchaseItemId,
-          'product_id': productId,
-          'bag_count': bags,
-          'dispatched_weight': weight,
-        }
-      ],
+      'items': selectedItems.map((item) => {
+        'purchase_item_id': item.id,
+        'bag_count': item.bagCount,
+        'dispatched_weight': item.availableWeight,
+      }).toList(),
       'expenses': _dynamicExpenses.map((e) => e.toJson()).toList(),
       if (_notesCtrl.text.isNotEmpty) 'notes': _notesCtrl.text.trim(),
     };
 
-    final challanProvider = Provider.of<ChallanProvider>(context, listen: false);
     final success = await challanProvider.createShipment(body);
 
     if (mounted) {
@@ -238,6 +241,51 @@ class _CreateChallanScreenState extends State<CreateChallanScreen> {
     );
   }
 
+  Future<List<int>?> _openMultiPicker(String title, List<DispatchPurchaseItemModel> items) async {
+    final selected = {..._selectedPurchaseItemIds};
+    return showModalBottomSheet<List<int>>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (sheetContext) => StatefulBuilder(builder: (context, setSheetState) => SafeArea(child: Container(
+        height: MediaQuery.of(context).size.height * .72,
+        padding: const EdgeInsets.fromLTRB(20, 12, 20, 16),
+        decoration: const BoxDecoration(color: Colors.white, borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+        child: Column(children: [
+          Container(width: 42, height: 4, decoration: BoxDecoration(color: AppColors.border, borderRadius: BorderRadius.circular(4))),
+          const SizedBox(height: 14),
+          Row(children: [Expanded(child: Text(title, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold))), IconButton(onPressed: () => Navigator.pop(sheetContext), icon: const Icon(Icons.close))]),
+          Container(width: double.infinity, padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10), decoration: BoxDecoration(color: AppColors.accentLight, borderRadius: BorderRadius.circular(10)), child: Row(children: [const Icon(Icons.calendar_month_rounded, color: AppColors.primary, size: 19), const SizedBox(width: 8), Text('এই চালানের তারিখ: ${DateFormat('dd MMMM yyyy').format(_dispatchDate)}', style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.w700))])),
+          const SizedBox(height: 12),
+          Expanded(child: ListView.separated(
+            itemCount: items.length,
+            separatorBuilder: (_, __) => const SizedBox(height: 8),
+            itemBuilder: (_, index) {
+              final item = items[index];
+              final checked = selected.contains(item.id);
+              return InkWell(
+                onTap: () => setSheetState(() => checked ? selected.remove(item.id) : selected.add(item.id)),
+                borderRadius: BorderRadius.circular(12),
+                child: Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(color: checked ? AppColors.accentLight : AppColors.background, borderRadius: BorderRadius.circular(12), border: Border.all(color: checked ? AppColors.primary : AppColors.border)),
+                  child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(item.productName, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14)), const SizedBox(height: 4), Text('ক্রয় নং: ${item.purchaseNumber}', style: const TextStyle(fontSize: 12)), Text('কৃষক: ${item.supplierName}', style: const TextStyle(fontSize: 12)), const SizedBox(height: 6), Row(children: [const Icon(Icons.calendar_today_rounded, size: 14, color: AppColors.primary), const SizedBox(width: 4), Text('ক্রয়ের তারিখ: ${_displayDate(item.purchaseDate)}', style: const TextStyle(fontSize: 12, color: AppColors.primary, fontWeight: FontWeight.w700)), const Spacer(), Text('${item.availableWeight.toStringAsFixed(2)} ${item.unitName}', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600))])])), const SizedBox(width: 10), Icon(checked ? Icons.check_circle : Icons.radio_button_unchecked, color: checked ? AppColors.primary : AppColors.textSecondary)]),
+                ),
+              );
+            },
+          )),
+          const SizedBox(height: 10),
+          SizedBox(width: double.infinity, child: ElevatedButton(onPressed: () => Navigator.pop(sheetContext, selected.toList()), child: Text('${selected.length}টি পণ্য নির্বাচন করুন'))),
+        ]),
+      ))),
+    );
+  }
+
+  String _displayDate(String raw) {
+    final date = DateTime.tryParse(raw);
+    return date == null ? (raw.isEmpty ? 'তারিখ নেই' : raw) : DateFormat('dd MMM yyyy').format(date);
+  }
+
   Widget _pickerField({required String label, required String value, required VoidCallback onTap}) {
     return InkWell(
       onTap: onTap,
@@ -264,6 +312,8 @@ class _CreateChallanScreenState extends State<CreateChallanScreen> {
     final aratdarProvider = Provider.of<AratdarProvider>(context);
     final transporterProvider = Provider.of<TransporterProvider>(context);
     final cropProvider = Provider.of<CropProvider>(context);
+    final dispatchDate = DateFormat('yyyy-MM-dd').format(_dispatchDate);
+    final dispatchItems = challanProvider.dispatchPurchaseItems.where((item) => item.purchaseDate.isEmpty || item.purchaseDate.length < 10 || item.purchaseDate.substring(0, 10) == dispatchDate).toList();
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
@@ -352,13 +402,13 @@ class _CreateChallanScreenState extends State<CreateChallanScreen> {
                   ],
                 ),
                 const SizedBox(height: 12),
-                if (cropProvider.crops.isNotEmpty)
+                if (dispatchItems.isNotEmpty)
                   _pickerField(
-                    label: 'কৃষিপণ্য নির্বাচন করুন *',
-                    value: _selectedProductId == null ? 'নির্বাচন করুন' : cropProvider.crops.firstWhere((c) => c.id == _selectedProductId).name,
+                    label: 'চালানের পণ্য নির্বাচন করুন *',
+                    value: _selectedPurchaseItemIds.isEmpty ? 'পণ্য নির্বাচন করুন' : '${_selectedPurchaseItemIds.length}টি পণ্য নির্বাচিত',
                     onTap: () async {
-                      final id = await _openFullPagePicker('কৃষিপণ্য নির্বাচন করুন', cropProvider.crops.map((c) => MapEntry(c.id, c.name)).toList(), selectedId: _selectedProductId);
-                      if (id != null && mounted) setState(() => _selectedProductId = id);
+                      final ids = await _openMultiPicker('চালানের পণ্য নির্বাচন করুন', dispatchItems);
+                      if (ids != null && mounted) setState(() { _selectedPurchaseItemIds..clear()..addAll(ids); });
                     },
                   )
                 else
@@ -400,35 +450,18 @@ class _CreateChallanScreenState extends State<CreateChallanScreen> {
                 ),
                 const SizedBox(height: 12),
                 if (transporterProvider.transporters.isNotEmpty)
-                  DropdownButtonFormField<int>(
-                    isExpanded: true,
-                    icon: const Icon(Icons.keyboard_arrow_down_rounded),
-                    dropdownColor: Colors.white,
-                    menuMaxHeight: 360,
-                    borderRadius: BorderRadius.circular(14),
-                    value: _selectedTransporterId,
-                    decoration: const InputDecoration(labelText: 'ট্রান্সপোর্টার সিলেক্ট করুন (ঐচ্ছিক)'),
-                    items: [
-                      const DropdownMenuItem(value: null, child: Text('সরাসরি ট্রাক নম্বর লিখুন')),
-                      ...transporterProvider.transporters.map((t) => DropdownMenuItem(
-                        value: t.id,
-                        child: Text('${t.name} (${t.truckNumber ?? ""})'),
-                      )),
-                    ],
+                  _pickerField(
+                    label: 'ট্রান্সপোর্টার নির্বাচন করুন (ঐচ্ছিক)',
+                    value: _selectedTransporterId == null ? 'নির্বাচন করুন' : transporterProvider.transporters.firstWhere((t) => t.id == _selectedTransporterId).name,
                     onTap: () async {
                       final id = await _openFullPagePicker('ট্রান্সপোর্টার নির্বাচন করুন', transporterProvider.transporters.map((t) => MapEntry(t.id, '${t.name} (${t.truckNumber ?? ''})')).toList(), selectedId: _selectedTransporterId);
                       if (id == null || !mounted) return;
-                      setState(() => _selectedTransporterId = id);
-                    },
-                    onChanged: (val) {
+                      final t = transporterProvider.transporters.firstWhere((item) => item.id == id);
                       setState(() {
-                        _selectedTransporterId = val;
-                        if (val != null) {
-                          final t = transporterProvider.transporters.firstWhere((e) => e.id == val);
-                          if (t.truckNumber != null) _vehicleCtrl.text = t.truckNumber!;
-                          if (t.driverName != null) _driverNameCtrl.text = t.driverName!;
-                          if (t.driverPhone != null) _driverPhoneCtrl.text = t.driverPhone!;
-                        }
+                        _selectedTransporterId = id;
+                        if (t.truckNumber != null) _vehicleCtrl.text = t.truckNumber!;
+                        if (t.driverName != null) _driverNameCtrl.text = t.driverName!;
+                        if (t.driverPhone != null) _driverPhoneCtrl.text = t.driverPhone!;
                       });
                     },
                   ),
