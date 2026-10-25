@@ -1,3 +1,4 @@
+﻿import 'dart:io';
 import 'package:flutter/material.dart';
 import '../../data/models/user_model.dart';
 import '../../data/services/auth_api_service.dart';
@@ -24,7 +25,12 @@ class AuthProvider extends ChangeNotifier {
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
-    final response = await _authService.register(firstName: firstName, lastName: lastName, email: email, password: password, passwordConfirmation: passwordConfirmation);
+    final response = await _authService.register(
+        firstName: firstName,
+        lastName: lastName,
+        email: email,
+        password: password,
+        passwordConfirmation: passwordConfirmation);
     _isLoading = false;
     _errorMessage = response.success ? null : response.message;
     notifyListeners();
@@ -70,11 +76,26 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
-  Future<bool> updateProfile({required String firstName, String? lastName, required String email, String? mobile}) async {
+  /// PUT /api/v1/profile — update trader name, contact, locale, and optional avatar image.
+  Future<bool> updateProfile({
+    required String firstName,
+    String? lastName,
+    required String email,
+    String? mobile,
+    String? locale,
+    File? image,
+  }) async {
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
-    final response = await _authService.updateProfile(firstName: firstName, lastName: lastName, email: email, mobile: mobile);
+    final response = await _authService.updateProfile(
+      firstName: firstName,
+      lastName: lastName,
+      email: email,
+      mobile: mobile,
+      locale: locale,
+      image: image,
+    );
     if (response.success && response.data != null) _currentUser = response.data;
     _errorMessage = response.success ? null : response.message;
     _isLoading = false;
@@ -82,11 +103,20 @@ class AuthProvider extends ChangeNotifier {
     return response.success;
   }
 
-  Future<bool> changePassword({required String currentPassword, required String password, required String confirmation}) async {
+  /// POST /api/v1/auth/change-password
+  Future<bool> changePassword({
+    required String currentPassword,
+    required String password,
+    required String passwordConfirmation,
+  }) async {
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
-    final response = await _authService.changePassword(currentPassword: currentPassword, password: password, confirmation: confirmation);
+    final response = await _authService.changePassword(
+      currentPassword: currentPassword,
+      password: password,
+      passwordConfirmation: passwordConfirmation,
+    );
     _errorMessage = response.success ? null : response.message;
     _isLoading = false;
     notifyListeners();
@@ -127,7 +157,7 @@ class AuthProvider extends ChangeNotifier {
         return false;
       }
     } catch (e) {
-      _errorMessage = 'লগইন ব্যর্থ হয়েছে: ${e.toString()}';
+      _errorMessage = 'লগইন ব্যর্থ হয়েছে: ${e.toString()}';
       _isLoading = false;
       notifyListeners();
       return false;

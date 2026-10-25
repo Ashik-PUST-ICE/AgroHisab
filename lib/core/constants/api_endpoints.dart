@@ -1,4 +1,4 @@
-class ApiEndpoints {
+﻿class ApiEndpoints {
   // Base URL - defaults to local API gateway or service
   // For Android Emulator use 10.0.2.2, for real phone use your machine's LAN IP
   // Local Laravel Herd gateway. The gateway exposes service routes under
@@ -14,12 +14,17 @@ class ApiEndpoints {
   static const String changePassword = '/auth/change-password';
   static const String profile = '/profile';
 
+  // Security Settings
+  static const String securitySettings = '/security-settings';
+  static const String securityChangePin = '/security-settings/change-pin';
+  static const String securityBiometric = '/security-settings/biometric';
+
   // Purchases & Farmer Calculator
   static const String purchases = '/purchases';
   static const String calculateProcurement = '/purchases/calculate';
   static const String suppliers = '/suppliers';
 
-  // Shipments (মাল চালান) & Expenses
+  // Shipments (à¦®à¦¾à¦² à¦šà¦¾à¦²à¦¾à¦¨) & Expenses
   static const String shipments = '/shipments';
   static const String shipmentExpenseHeads = '/shipments/expense-heads';
 
@@ -47,6 +52,9 @@ class ApiEndpoints {
     profile,
     me,
     logout,
+      securitySettings,
+    securityChangePin,
+    securityBiometric,
   };
 
   /// Returns the gateway service prefix for an API endpoint.
@@ -66,3 +74,4 @@ class ApiEndpoints {
     return '/u/business_service/v1';
   }
 }
+

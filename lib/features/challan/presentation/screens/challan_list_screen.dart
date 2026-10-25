@@ -39,7 +39,7 @@ class _ChallanListScreenState extends State<ChallanListScreen> with SingleTicker
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: const Text('চালান (Challan)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+        title: const Text('মাল চালান (Challan)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
         bottom: TabBar(
           controller: _tabController,
           labelColor: AppColors.primary,
@@ -47,7 +47,7 @@ class _ChallanListScreenState extends State<ChallanListScreen> with SingleTicker
           indicatorColor: AppColors.primary,
           indicatorWeight: 3,
           tabs: const [
-            Tab(text: 'নতুন চালান'),
+            Tab(text: 'নতুন চালান তৈরি'),
             Tab(text: 'চালান তালিকা'),
           ],
         ),
@@ -64,15 +64,17 @@ class _ChallanListScreenState extends State<ChallanListScreen> with SingleTicker
             child: provider.isLoading
                 ? const Center(child: CircularProgressIndicator())
                 : provider.shipments.isEmpty
-                    ? Center(
+                    ? const Center(
                         child: Padding(
-                          padding: const EdgeInsets.all(40),
+                          padding: EdgeInsets.all(40),
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
-                            children: const [
+                            children: [
                               Icon(Icons.local_shipping_outlined, size: 54, color: AppColors.textSecondary),
                               SizedBox(height: 12),
                               Text('কোনো চালান পাওয়া যায়নি', style: TextStyle(color: AppColors.textSecondary, fontSize: 15)),
+                              SizedBox(height: 6),
+                              Text('নতুন চালান তৈরি করতে পাশের ট্যাবে যান', style: TextStyle(color: AppColors.textSecondary, fontSize: 12)),
                             ],
                           ),
                         ),
@@ -92,6 +94,32 @@ class _ChallanListScreenState extends State<ChallanListScreen> with SingleTicker
   }
 
   Widget _buildChallanCard(dynamic shipment) {
+    Color badgeColor = AppColors.primary;
+    Color badgeBg = AppColors.accentLight;
+
+    switch (shipment.status) {
+      case 0: // Draft
+        badgeColor = Colors.orange.shade800;
+        badgeBg = Colors.orange.shade50;
+        break;
+      case 1: // Dispatched
+        badgeColor = Colors.blue.shade800;
+        badgeBg = Colors.blue.shade50;
+        break;
+      case 2: // Received
+        badgeColor = Colors.teal.shade800;
+        badgeBg = Colors.teal.shade50;
+        break;
+      case 3: // Selling
+        badgeColor = Colors.purple.shade800;
+        badgeBg = Colors.purple.shade50;
+        break;
+      case 5: // Settled
+        badgeColor = Colors.green.shade800;
+        badgeBg = Colors.green.shade50;
+        break;
+    }
+
     return InkWell(
       onTap: () {
         Navigator.push(
@@ -107,6 +135,9 @@ class _ChallanListScreenState extends State<ChallanListScreen> with SingleTicker
           color: Colors.white,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(color: AppColors.border),
+          boxShadow: [
+            BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 6, offset: const Offset(0, 2)),
+          ],
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -121,19 +152,19 @@ class _ChallanListScreenState extends State<ChallanListScreen> with SingleTicker
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                   decoration: BoxDecoration(
-                    color: AppColors.accentLight,
+                    color: badgeBg,
                     borderRadius: BorderRadius.circular(6),
                   ),
                   child: Text(
                     shipment.statusLabel,
-                    style: const TextStyle(color: AppColors.primary, fontSize: 11, fontWeight: FontWeight.bold),
+                    style: TextStyle(color: badgeColor, fontSize: 11, fontWeight: FontWeight.bold),
                   ),
                 ),
               ],
             ),
             const SizedBox(height: 6),
             Text(
-              'গন্তব্য: ${shipment.aratdarName} (${shipment.destinationMarket}) • ${shipment.dispatchDate}',
+              'আড়তদার: ${shipment.aratdarName} (${shipment.destinationMarket}) • ${shipment.dispatchDate}',
               style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
             ),
             const Divider(height: 16),
@@ -141,11 +172,11 @@ class _ChallanListScreenState extends State<ChallanListScreen> with SingleTicker
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'গাড়ি: ${shipment.vehicleNumber ?? "ট্রাক"}',
+                  'গাড়ি: ${shipment.vehicleNumber.isNotEmpty ? shipment.vehicleNumber : "ট্রাক"}',
                   style: const TextStyle(fontSize: 13, color: AppColors.textPrimary, fontWeight: FontWeight.w600),
                 ),
                 Text(
-                  'মোট মাল: ${shipment.totalDispatchedWeight} কেজি',
+                  'প্রেরিত: ${shipment.totalDispatchedWeight} কেজি (${shipment.totalBags} বস্তা)',
                   style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.primary),
                 ),
               ],

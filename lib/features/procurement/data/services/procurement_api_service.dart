@@ -66,4 +66,31 @@ class ProcurementApiService {
       errors: response.errors,
     );
   }
+
+  // API 8: View farmer payment transaction receipts under purchase
+  Future<ApiResponse<List<PurchasePaymentModel>>> getPurchasePayments(int purchaseId) async {
+    final response = await _apiClient.get('/purchases/$purchaseId/payments');
+
+    if (response.success && response.data != null) {
+      List<dynamic> items = [];
+      if (response.data is List) {
+        items = response.data as List;
+      } else if (response.data is Map && response.data['data'] is List) {
+        items = response.data['data'] as List;
+      }
+      final list = items.map((e) => PurchasePaymentModel.fromJson(e as Map<String, dynamic>)).toList();
+      return ApiResponse(success: true, message: response.message, data: list);
+    }
+    return ApiResponse(success: false, message: response.message, errors: response.errors);
+  }
+
+  // API 7: Pay farmer from selected cash/bank account
+  Future<ApiResponse<PurchasePaymentModel>> storePurchasePayment(int purchaseId, Map<String, dynamic> body) async {
+    final response = await _apiClient.post('/purchases/$purchaseId/payments', body: body);
+    if (response.success && response.data != null) {
+      final model = PurchasePaymentModel.fromJson(response.data as Map<String, dynamic>);
+      return ApiResponse(success: true, message: response.message, data: model);
+    }
+    return ApiResponse(success: false, message: response.message, errors: response.errors);
+  }
 }

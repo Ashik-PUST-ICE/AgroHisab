@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'core/constants/app_theme.dart';
 import 'features/auth/presentation/providers/auth_provider.dart';
@@ -22,6 +22,7 @@ import 'features/crops/presentation/providers/crop_provider.dart';
 import 'features/markets/presentation/providers/market_provider.dart';
 import 'features/units/presentation/providers/unit_provider.dart';
 import 'features/notifications/presentation/providers/notification_provider.dart';
+import 'features/security/presentation/providers/security_provider.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -55,9 +56,10 @@ class AgroHisabApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => MarketProvider()),
         ChangeNotifierProvider(create: (_) => UnitProvider()),
         ChangeNotifierProvider(create: (_) => NotificationProvider()),
+        ChangeNotifierProvider(create: (_) => SecurityProvider()),
       ],
       child: MaterialApp(
-        title: 'AgroHisab - কৃষি বাণিজ্য সাথী',
+        title: 'AgroHisab - à¦•à§ƒà¦·à¦¿ à¦¬à¦¾à¦£à¦¿à¦œà§à¦¯ à¦¸à¦¾à¦¥à§€',
         debugShowCheckedModeBanner: false,
         theme: AppTheme.lightTheme,
         home: const SplashScreen(),

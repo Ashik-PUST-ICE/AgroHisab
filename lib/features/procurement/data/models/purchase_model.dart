@@ -1,3 +1,47 @@
+class PurchasePaymentModel {
+  final int id;
+  final int purchaseId;
+  final String? purchaseNumber;
+  final int? supplierId;
+  final String? supplierName;
+  final int accountId;
+  final String accountName;
+  final double amount;
+  final String paymentDate;
+  final String? referenceNumber;
+  final String? notes;
+
+  PurchasePaymentModel({
+    required this.id,
+    required this.purchaseId,
+    this.purchaseNumber,
+    this.supplierId,
+    this.supplierName,
+    required this.accountId,
+    required this.accountName,
+    required this.amount,
+    required this.paymentDate,
+    this.referenceNumber,
+    this.notes,
+  });
+
+  factory PurchasePaymentModel.fromJson(Map<String, dynamic> json) {
+    return PurchasePaymentModel(
+      id: (json['id'] as num?)?.toInt() ?? 0,
+      purchaseId: (json['purchase_id'] as num?)?.toInt() ?? 0,
+      purchaseNumber: json['purchase_number'] ?? json['purchase']?['purchase_number'],
+      supplierId: (json['supplier_id'] as num?)?.toInt(),
+      supplierName: json['supplier_name'] ?? json['supplier']?['name'],
+      accountId: (json['account_id'] as num?)?.toInt() ?? 0,
+      accountName: json['account_name'] ?? json['account']?['name'] ?? 'ক্যাশ অ্যাকাউন্ট',
+      amount: (json['amount'] as num?)?.toDouble() ?? 0.0,
+      paymentDate: json['payment_date'] ?? '',
+      referenceNumber: json['reference_number'],
+      notes: json['notes'],
+    );
+  }
+}
+
 class PurchaseModel {
   final int id;
   final String purchaseNumber;
