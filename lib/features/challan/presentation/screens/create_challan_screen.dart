@@ -81,7 +81,7 @@ class _CreateChallanScreenState extends State<CreateChallanScreen> {
           final selectedHead = heads.firstWhere((head) => head.id == selectedType, orElse: () => heads.first);
           return SafeArea(
             child: Container(
-              height: MediaQuery.of(context).size.height * .88,
+              height: MediaQuery.of(context).size.height * .72,
               padding: EdgeInsets.fromLTRB(20, 12, 20, MediaQuery.of(context).viewInsets.bottom + 16),
               decoration: const BoxDecoration(color: Colors.white, borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -195,34 +195,66 @@ class _CreateChallanScreenState extends State<CreateChallanScreen> {
   }
 
   @override
-  Future<int?> _openFullPagePicker(String title, List<MapEntry<int, String>> options) async {
-    return Navigator.of(context).push<int>(MaterialPageRoute(builder: (_) => Scaffold(
-      appBar: AppBar(title: Text(title)),
-      body: ListView.separated(
-        padding: const EdgeInsets.all(16),
-        itemCount: options.length,
-        separatorBuilder: (_, __) => const SizedBox(height: 8),
-        itemBuilder: (_, index) => Material(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
-          child: ListTile(
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            title: Text(options[index].value, maxLines: 2, overflow: TextOverflow.ellipsis),
-            trailing: const Icon(Icons.chevron_right_rounded),
-            onTap: () => Navigator.pop(context, options[index].key),
+  Future<int?> _openFullPagePicker(String title, List<MapEntry<int, String>> options, {int? selectedId}) async {
+    return showModalBottomSheet<int>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (sheetContext) => SafeArea(
+        child: Container(
+          height: MediaQuery.of(context).size.height * .72,
+          padding: const EdgeInsets.fromLTRB(20, 12, 20, 16),
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
           ),
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Center(child: Container(width: 42, height: 4, decoration: BoxDecoration(color: AppColors.border, borderRadius: BorderRadius.circular(4)))),
+            const SizedBox(height: 14),
+            Row(children: [
+              Expanded(child: Text(title, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.textPrimary))),
+              IconButton(onPressed: () => Navigator.pop(sheetContext), icon: const Icon(Icons.close)),
+            ]),
+            const SizedBox(height: 8),
+            Expanded(child: ListView.separated(
+              itemCount: options.length,
+              separatorBuilder: (_, __) => const SizedBox(height: 8),
+              itemBuilder: (_, index) {
+                final selected = options[index].key == selectedId;
+                return InkWell(
+                onTap: () => Navigator.pop(sheetContext, options[index].key),
+                borderRadius: BorderRadius.circular(12),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+                  decoration: BoxDecoration(color: selected ? AppColors.accentLight : AppColors.background, borderRadius: BorderRadius.circular(12), border: Border.all(color: selected ? AppColors.primary : AppColors.border)),
+                  child: Row(children: [Expanded(child: Text(options[index].value, maxLines: 2, overflow: TextOverflow.ellipsis)), Icon(selected ? Icons.check_circle : Icons.radio_button_unchecked, color: selected ? AppColors.primary : AppColors.textSecondary)]),
+                ),
+              );
+              },
+            )),
+          ]),
         ),
       ),
-    )));
+    );
   }
 
   Widget _pickerField({required String label, required String value, required VoidCallback onTap}) {
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(10),
-      child: InputDecorator(
-        decoration: InputDecoration(labelText: label, suffixIcon: const Icon(Icons.arrow_forward_ios_rounded, size: 16)),
-        child: Text(value, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w600)),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 11),
+        decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(10), border: Border.all(color: AppColors.border)),
+        child: Row(children: [
+          const Icon(Icons.keyboard_arrow_down_rounded, color: AppColors.primary, size: 20),
+          const SizedBox(width: 7),
+          Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text(label, style: const TextStyle(fontSize: 10, color: AppColors.textSecondary)),
+            const SizedBox(height: 3),
+            Text(value, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+          ])),
+          const Icon(Icons.expand_more_rounded, color: AppColors.textSecondary, size: 19),
+        ]),
       ),
     );
   }
@@ -270,7 +302,7 @@ class _CreateChallanScreenState extends State<CreateChallanScreen> {
                         ? 'নির্বাচন করুন'
                         : aratdarProvider.aratdars.firstWhere((a) => a.id == _selectedAratdarId).name,
                     onTap: () async {
-                      final id = await _openFullPagePicker('আড়তদার নির্বাচন করুন', aratdarProvider.aratdars.map((a) => MapEntry(a.id, a.name)).toList());
+                      final id = await _openFullPagePicker('আড়তদার নির্বাচন করুন', aratdarProvider.aratdars.map((a) => MapEntry(a.id, a.name)).toList(), selectedId: _selectedAratdarId);
                       if (id != null && mounted) setState(() => _selectedAratdarId = id);
                     },
                   ),
@@ -321,23 +353,13 @@ class _CreateChallanScreenState extends State<CreateChallanScreen> {
                 ),
                 const SizedBox(height: 12),
                 if (cropProvider.crops.isNotEmpty)
-                  DropdownButtonFormField<int>(
-                    isExpanded: true,
-                    icon: const Icon(Icons.keyboard_arrow_down_rounded),
-                    dropdownColor: Colors.white,
-                    menuMaxHeight: 360,
-                    borderRadius: BorderRadius.circular(14),
-                    value: _selectedProductId ?? cropProvider.crops.first.id,
-                    decoration: const InputDecoration(labelText: 'কৃষিপণ্য নির্বাচন করুন *'),
-                    items: cropProvider.crops.map((c) => DropdownMenuItem(
-                      value: c.id,
-                      child: Text('${c.name} ${c.variety != null ? "(${c.variety})" : ""}'),
-                    )).toList(),
+                  _pickerField(
+                    label: 'কৃষিপণ্য নির্বাচন করুন *',
+                    value: _selectedProductId == null ? 'নির্বাচন করুন' : cropProvider.crops.firstWhere((c) => c.id == _selectedProductId).name,
                     onTap: () async {
-                      final id = await _openFullPagePicker('কৃষিপণ্য নির্বাচন করুন', cropProvider.crops.map((c) => MapEntry(c.id, c.name)).toList());
+                      final id = await _openFullPagePicker('কৃষিপণ্য নির্বাচন করুন', cropProvider.crops.map((c) => MapEntry(c.id, c.name)).toList(), selectedId: _selectedProductId);
                       if (id != null && mounted) setState(() => _selectedProductId = id);
                     },
-                    onChanged: (val) => setState(() => _selectedProductId = val),
                   )
                 else
                   TextFormField(
@@ -394,7 +416,7 @@ class _CreateChallanScreenState extends State<CreateChallanScreen> {
                       )),
                     ],
                     onTap: () async {
-                      final id = await _openFullPagePicker('ট্রান্সপোর্টার নির্বাচন করুন', transporterProvider.transporters.map((t) => MapEntry(t.id, '${t.name} (${t.truckNumber ?? ''})')).toList());
+                      final id = await _openFullPagePicker('ট্রান্সপোর্টার নির্বাচন করুন', transporterProvider.transporters.map((t) => MapEntry(t.id, '${t.name} (${t.truckNumber ?? ''})')).toList(), selectedId: _selectedTransporterId);
                       if (id == null || !mounted) return;
                       setState(() => _selectedTransporterId = id);
                     },
